@@ -1,0 +1,206 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+datasource db {
+  provider     = "mysql"
+  url          = env("DATABASE_URL")
+  relationMode = "prisma"
+}
+
+generator js {
+  provider        = "prisma-client-js"
+  previewFeatures = ["referentialIntegrity"]
+}
+
+enum StateEnum {
+  ACTIVE
+  INACTIVE
+}
+
+enum ListEnum {
+  COLOR
+  STATE
+  STAGE
+  LOT
+  MEDICINE
+  WEIGHT
+  BREED
+  REPRODUCTION
+  GENDER
+  LOSS
+  VACCINE
+}
+
+enum RoleEnum {
+  ADMIN
+  COMPANY
+  FARMER
+  COWBOY
+}
+
+enum ModuleEnum {
+  ROLE
+  USER
+  LIST
+  FARM
+  ANIMAL
+  REPORT
+  IMPORT
+}
+
+model Module {
+  id        String           @id @default(uuid())
+  key       ModuleEnum
+  name      String
+  roles     ModulesOnRoles[]
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+}
+
+model ModulesOnRoles {
+  id         String   @id @default(uuid())
+  role       Role     @relation(fields: [roleId], references: [id])
+  roleId     String
+  module     Module   @relation(fields: [moduleId], references: [id])
+  moduleId   String
+  assignedBy String
+  assignedAt DateTime @default(now())
+
+  @@index([roleId])
+  @@index([moduleId])
+}
+
+model User {
+  id            String           @id @default(uuid())
+  parent        User?            @relation("ParentChildren", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  parentId      String?
+  role          Role             @relation(fields: [roleId], references: [id])
+  roleId        String
+  email         String           @unique
+  password      String
+  name          String
+  phone         String
+  farmsAsFarmer Farm[]
+  farmsAsCowboy FarmsOnCowboys[]
+  children      User[]           @relation("ParentChildren")
+  resumes       Resume[]
+  events        Event[]
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  @@index([parentId])
+  @@index([roleId])
+}
+
+model Role {
+  id        String           @id @default(uuid())
+  name      String           @unique
+  key       RoleEnum
+  modules   ModulesOnRoles[]
+  users     User[]
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+}
+
+model Farm {
+  id        String           @id @default(uuid())
+  farmer    User             @relation(fields: [farmerId], references: [id])
+  farmerId  String
+  name      String           @unique
+  cowboys   FarmsOnCowboys[]
+  animals   Animal[]
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  @@index([farmerId])
+}
+
+model FarmsOnCowboys {
+  id         String   @id @default(uuid())
+  cowboy     User     @relation(fields: [cowboyId], references: [id])
+  cowboyId   String
+  farm       Farm     @relation(fields: [farmId], references: [id])
+  farmId     String
+  assignedBy String
+  assignedAt DateTime @default(now())
+
+  @@index([cowboyId])
+  @@index([farmId])
+}
+
+model ListItem {
+  id        String    @id @default(uuid())
+  list_item String    @unique
+  list      ListEnum
+  item      String
+  state     StateEnum @default(value: ACTIVE)
+  breeds    Resume[]  @relation(name: "Bread")
+  colors    Resume[]  @relation(name: "Color")
+  stages    Resume[]  @relation(name: "Stage")
+  genders   Resume[]  @relation(name: "Gender")
+  events    Event[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Resume {
+  id            String   @id @default(uuid())
+  animal        Animal   @relation(fields: [animalCode], references: [code])
+  animalCode    String   @unique
+  breed         ListItem @relation(name: "Bread", fields: [breedId], references: [id])
+  breedId       String
+  color         ListItem @relation(name: "Color", fields: [colorId], references: [id])
+  colorId       String
+  stage         ListItem @relation(name: "Stage", fields: [stageId], references: [id])
+  stageId       String
+  gender        ListItem @relation(name: "Gender", fields: [genderId], references: [id])
+  genderId      String
+  updatedBy     User     @relation(fields: [updatedById], references: [id])
+  updatedById   String
+  name          String?
+  caravan       String?
+  image         String
+  birthday      DateTime
+  initialWeight Float
+  events        Event[]
+  registeredAt  DateTime
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([animalCode])
+  @@index([breedId])
+  @@index([colorId])
+  @@index([stageId])
+  @@index([genderId])
+  @@index([updatedById])
+}
+
+model Event {
+  id           String   @id @default(uuid())
+  resume       Resume   @relation(fields: [resumeId], references: [id])
+  resumeId     String
+  listItem     ListItem @relation(fields: [listItemId], references: [id])
+  listItemId   String
+  updatedBy    User     @relation(fields: [updatedById], references: [id])
+  updatedById  String
+  numericValue Float?
+  image        String?
+  comments     String?
+  registeredAt DateTime
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([resumeId])
+  @@index([listItemId])
+  @@index([updatedById])
+}
+
+model Animal {
+  id     String  @id @default(uuid())
+  farm   Farm    @relation(fields: [farmId], references: [id])
+  farmId String
+  resume Resume?
+  code   String  @unique
+
+  @@index([farmId])
+}

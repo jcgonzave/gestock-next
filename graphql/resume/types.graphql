@@ -1,0 +1,68 @@
+extend type Query {
+  resumesByFarmMobile(farmId: String!): [Resume]! @authenticated
+}
+
+extend type Mutation {
+  syncResumesMobile(resumes: [ResumeInput], events: [EventInput]): SyncResponse
+    @authenticated
+}
+
+type Resume {
+  id: String!
+  animalCode: String!
+  image: String
+  breedId: String!
+  colorId: String!
+  stageId: String!
+  genderId: String!
+  birthday: String!
+  caravan: String
+  initialWeight: String!
+  name: String
+  registeredAt: String!
+  events: [Event]
+}
+
+type Event {
+  id: String!
+  ResumeId: String!
+  listItem: ListItem!
+  numericValue: String
+  image: String
+  comments: String
+  registeredAt: String!
+}
+
+input ResumeInput {
+  id: String
+  animalCode: String!
+  breedId: String!
+  colorId: String!
+  stageId: String!
+  genderId: String!
+  birthday: String!
+  caravan: String
+  initialWeight: String!
+  name: String
+  registeredAt: String!
+  modified: String
+  isNew: Boolean
+  isValid: Boolean
+  hasNewEvents: Boolean
+}
+
+input EventInput {
+  animalCode: String!
+  listItemId: String!
+  numericValue: String
+  comments: String
+  registeredAt: String!
+  isNew: Boolean
+  eventId: Float
+}
+
+type SyncResponse {
+  message: String!
+  status: Int!
+  result: [String]
+}
