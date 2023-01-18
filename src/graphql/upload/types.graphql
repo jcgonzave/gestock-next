@@ -1,0 +1,19 @@
+extend type Mutation {
+  upload(farmId: String!, file: Upload!): UploadResponse
+    @authorized(module: UPLOAD)
+}
+
+type InvalidDataLocation {
+  key: String!
+  sheet: Float!
+  row: Float!
+  columns: [String]!
+}
+
+type UploadResponse {
+  invalidDataLocations: [InvalidDataLocation]!
+  resumesUploadedCount: Float!
+  eventsUploadedCount: Float!
+  status: Int!
+  result: Boolean!
+}

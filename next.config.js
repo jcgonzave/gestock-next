@@ -1,7 +1,16 @@
 /** @type {import('next').NextConfig} */
-const nextConfig = {
+
+const withAntdLess = require('next-plugin-antd-less');
+
+module.exports = withAntdLess({
+  lessVarsFilePath: './src/styles/globals.less',
+  lessVarsFilePathAppendToEndOfContent: false,
+  cssLoaderOptions: {},
+
   reactStrictMode: true,
   swcMinify: true,
-}
 
-module.exports = nextConfig
+  webpack(config) {
+    return config;
+  },
+});
