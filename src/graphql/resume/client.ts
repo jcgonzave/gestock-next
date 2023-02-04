@@ -1,16 +1,18 @@
 import gql from 'graphql-tag';
 
-export const UPLOAD = gql`
-  mutation Upload($farmId: String!, $file: Upload!) {
-    upload(farmId: $farmId, file: $file) {
-      invalidDataLocations {
+export const BULK_UPLOAD_EXCEL = gql`
+  mutation BulkUploadExcel(
+    $farmId: String!
+    $resumes: [ResumeInputExcel]
+    $events: [EventInputExcel]
+  ) {
+    bulkUploadExcel(farmId: $farmId, resumes: $resumes, events: $events) {
+      invalidData {
         key
         sheet
         row
         columns
       }
-      resumesUploadedCount
-      eventsUploadedCount
       status
       result
     }

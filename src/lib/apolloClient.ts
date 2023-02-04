@@ -21,7 +21,7 @@ const errorLink = onError(({ graphQLErrors, networkError }) => {
     graphQLErrors.forEach(({ message }) => {
       const key = `messages.${message.replace('Error: ', '')}`;
       const translation = t(key);
-      showError(translation === key ? message : translation);
+      showError(!translation || translation === key ? message : translation);
     });
   }
   if (networkError) {

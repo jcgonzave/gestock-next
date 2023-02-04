@@ -144,18 +144,14 @@ const dictionary: any = {
     file: 'Archivo',
     help: 'Seleccione un archivo o arrástrelo a este cuadro',
     invalidExtension: 'El archivo debe ser de tipo {{extension}}',
-    result: {
-      title: 'Resultado de la carga',
-      resumes: 'Hojas de vida creadas/actualizadas',
-      events: 'Eventos creados',
-    },
-    invalid: {
-      title: 'Datos no válidos encontrados en el archivo',
-      sheet: 'Hoja',
-      row: 'Fila',
-      columns: 'Columna(s) con datos no válidos',
-    },
+    resultTitle: 'Resultado de la carga',
     completed: 'El archivo ha sido procesado',
+  },
+  invalidUpload: {
+    title: 'Datos no válidos encontrados en el archivo',
+    sheet: 'Hoja',
+    row: 'Fila',
+    columns: 'Columna(s) con datos no válidos',
   },
   resume: {
     code: 'Número de TAG',

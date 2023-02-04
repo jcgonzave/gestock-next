@@ -3,9 +3,10 @@ import { useMutation, useQuery } from '@apollo/client';
 import { Form, message, Select, Table, Upload as UploadAntd } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { useState } from 'react';
+import { read } from 'xlsx';
 import { t } from '../../constants/labels';
 import { FARMS } from '../../graphql/farm/client';
-import { UPLOAD } from '../../graphql/upload/client';
+import { BULK_UPLOAD_EXCEL } from '../../graphql/resume/client';
 import { FormButtons } from '../admin';
 import { Title } from '../shared';
 
@@ -14,17 +15,17 @@ const { Option } = Select;
 
 const columns: ColumnsType<any> = [
   {
-    title: t('upload.invalid.sheet'),
+    title: t('invalidUpload.sheet'),
     dataIndex: 'sheet',
     key: 'sheet',
   },
   {
-    title: t('upload.invalid.row'),
+    title: t('invalidUpload.row'),
     dataIndex: 'row',
     key: 'row',
   },
   {
-    title: t('upload.invalid.columns'),
+    title: t('invalidUpload.columns'),
     dataIndex: 'columns',
     key: 'columns',
     render: (value) => <span>{value.join(', ')}</span>,
@@ -37,31 +38,75 @@ const formItemLayout = {
 };
 
 const Upload = () => {
-  const [invalidDataLocations, setInvalidDataLocations] = useState([]);
-  const [resumesUploadedCount, setResumesUploadedCount] = useState(0);
-  const [eventsUploadedCount, setEventsUploadedCount] = useState(0);
-
+  const [invalidData, setInvalidData] = useState([]);
   const [messageApi, contextHolder] = message.useMessage();
 
   const {
     data: { farms },
   } = useQuery(FARMS);
-  const [upload, { loading }] = useMutation(UPLOAD, {
-    onCompleted: ({ upload }) => {
+  const [bulkUploadExcel, { loading }] = useMutation(BULK_UPLOAD_EXCEL, {
+    onCompleted: ({ bulkUploadExcel }) => {
       messageApi.open({
         type: 'success',
         content: t('upload.completed'),
       });
-      setInvalidDataLocations(upload.invalidDataLocations);
-      setResumesUploadedCount(upload.resumesUploadedCount);
-      setEventsUploadedCount(upload.eventsUploadedCount);
+      setInvalidData(bulkUploadExcel.invalidData);
     },
   });
 
-  const onFinish = (values: any) => {
-    setInvalidDataLocations([]);
+  const getDataFromFile = async (file: any) => {
+    const data = await file.arrayBuffer();
+    const workbook = read(data);
+    const resumes = getResumes(workbook.Sheets[workbook.SheetNames[0]]);
+    const events = getEvents(workbook.Sheets[workbook.SheetNames[1]]);
+    return { resumes, events };
+  };
+
+  const getResumes = (data: any) => {
+    const resumes = [];
+    let row = 2;
+    let animalCode = data[`A${row}`]?.v && String(data[`A${row}`]?.v);
+    while (animalCode) {
+      resumes.push({
+        animalCode,
+        caravan: data[`B${row}`]?.v && String(data[`B${row}`]?.v),
+        birthday: data[`C${row}`]?.v && String(data[`C${row}`]?.v),
+        initialWeight: data[`D${row}`]?.v && String(data[`D${row}`]?.v),
+        breed: data[`E${row}`]?.v && String(data[`E${row}`]?.v),
+        stage: data[`F${row}`]?.v && String(data[`F${row}`]?.v),
+        gender: data[`G${row}`]?.v && String(data[`G${row}`]?.v),
+        color: data[`H${row}`]?.v && String(data[`H${row}`]?.v),
+        name: data[`I${row}`]?.v && String(data[`I${row}`]?.v),
+      });
+      row = row += 1;
+      animalCode = data[`A${row}`]?.v && String(data[`A${row}`]?.v);
+    }
+    return resumes;
+  };
+
+  const getEvents = (data: any) => {
+    const events = [];
+    let row = 2;
+    let animalCode = data[`A${row}`]?.v && String(data[`A${row}`]?.v);
+    while (animalCode) {
+      events.push({
+        animalCode,
+        list: data[`B${row}`]?.v && String(data[`B${row}`]?.v),
+        item: data[`C${row}`]?.v && String(data[`C${row}`]?.v),
+        comments: data[`D${row}`]?.v && String(data[`D${row}`]?.v),
+      });
+      row = row += 1;
+      animalCode = data[`A${row}`]?.v && String(data[`A${row}`]?.v);
+    }
+    return events;
+  };
+
+  const onFinish = async (values: any) => {
+    setInvalidData([]);
     const { farmId, dragger } = values;
-    upload({ variables: { farmId, file: dragger[0] } });
+    const { originFileObj: file } = dragger[0];
+    const { resumes, events } = await getDataFromFile(file);
+    bulkUploadExcel({ variables: { farmId, resumes, events } });
   };
 
   return (
@@ -87,7 +132,7 @@ const Upload = () => {
           name='dragger'
           valuePropName='fileList'
           getValueFromEvent={(e) => {
-            setInvalidDataLocations([]);
+            setInvalidData([]);
             if (Array.isArray(e)) {
               return e.slice(e.length - 1);
             }
@@ -105,21 +150,10 @@ const Upload = () => {
         <FormButtons loading={loading} />
       </Form>
 
-      {invalidDataLocations.length > 0 && (
+      {invalidData.length > 0 && (
         <>
-          <h2 style={{ marginTop: 40 }}>{t('upload.result.title')}</h2>
-          <h4>
-            {t('upload.result.resumes')}
-            {': '}
-            {resumesUploadedCount}
-          </h4>
-          <h4>
-            {t('upload.result.events')}
-            {': '}
-            {eventsUploadedCount}
-          </h4>
-          <h2 style={{ marginTop: 20 }}>{t('upload.invalid.title')}</h2>
-          <Table dataSource={invalidDataLocations} columns={columns} />
+          <h2 style={{ marginTop: 40 }}>{t('upload.resultTitle')}</h2>
+          <Table dataSource={invalidData} columns={columns} />
         </>
       )}
     </>

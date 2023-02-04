@@ -3,8 +3,16 @@ extend type Query {
 }
 
 extend type Mutation {
-  syncResumesMobile(resumes: [ResumeInput], events: [EventInput]): SyncResponse
-    @authenticated
+  bulkUploadMobile(
+    farmId: String!
+    resumes: [ResumeInputMobile]
+    events: [EventInputMobile]
+  ): UploadMobileResponse @authorized(module: UPLOAD)
+  bulkUploadExcel(
+    farmId: String!
+    resumes: [ResumeInputExcel]
+    events: [EventInputExcel]
+  ): UploadWebResponse @authorized(module: UPLOAD)
 }
 
 type Resume {
@@ -33,7 +41,7 @@ type Event {
   registeredAt: String!
 }
 
-input ResumeInput {
+input ResumeInputMobile {
   id: String
   animalCode: String!
   breedId: String!
@@ -51,7 +59,19 @@ input ResumeInput {
   hasNewEvents: Boolean
 }
 
-input EventInput {
+input ResumeInputExcel {
+  animalCode: String!
+  breed: String
+  color: String
+  stage: String
+  gender: String
+  birthday: String
+  caravan: String
+  initialWeight: String
+  name: String
+}
+
+input EventInputMobile {
   animalCode: String!
   listItemId: String!
   numericValue: String
@@ -61,8 +81,28 @@ input EventInput {
   eventId: Float
 }
 
-type SyncResponse {
+input EventInputExcel {
+  animalCode: String!
+  list: String
+  item: String
+  comments: String
+}
+
+type UploadMobileResponse {
   message: String!
   status: Int!
   result: [String]
+}
+
+type UploadWebResponse {
+  invalidData: [InvalidData]!
+  status: Int!
+  result: Boolean!
+}
+
+type InvalidData {
+  key: String!
+  sheet: Float!
+  row: Float!
+  columns: [String]!
 }

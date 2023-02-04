@@ -8,7 +8,7 @@ import listItem from './listItem/resolvers';
 import report from './report/resolvers';
 import resume from './resume/resolvers';
 import role from './role/resolvers';
-import { default as upload, default as user } from './user/resolvers';
+import user from './user/resolvers';
 
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
 import { loadSchemaSync } from '@graphql-tools/load';
@@ -19,18 +19,7 @@ const typeDefs = loadSchemaSync('src/graphql/**/*.graphql', {
 
 let schema = makeExecutableSchema({
   typeDefs,
-  resolvers: [
-    animal,
-    auth,
-    common,
-    farm,
-    listItem,
-    report,
-    resume,
-    role,
-    user,
-    upload,
-  ],
+  resolvers: [animal, auth, common, farm, listItem, report, resume, role, user],
 });
 
 schema = authenticated()(schema);

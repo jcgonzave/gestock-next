@@ -1,6 +1,5 @@
 type Query
 type Mutation
-scalar Upload
 
 directive @authenticated on FIELD_DEFINITION
 directive @authorized(module: ModuleEnum!) on FIELD_DEFINITION
