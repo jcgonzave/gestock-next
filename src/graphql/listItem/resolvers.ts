@@ -1,7 +1,8 @@
-import { successResponse, errorResponse } from '../utils/common';
-import { SUCCESS_MESSAGES, LISTS } from '../utils/constants';
+import { ListEnum, SuccessMessagesEnum } from '../enums';
+import { ContextType, ListItemInputType } from '../types';
+import { errorResponse, successResponse } from '../utils/responses';
 
-const { SUCCESS_EDITED, SUCCESS_SAVED, SUCCESS_DELETED } = SUCCESS_MESSAGES;
+const { SUCCESS_EDITED, SUCCESS_SAVED, SUCCESS_DELETED } = SuccessMessagesEnum;
 const {
   COLOR,
   STATE,
@@ -14,7 +15,7 @@ const {
   GENDER,
   LOSS,
   VACCINE,
-} = LISTS;
+} = ListEnum;
 
 const lists = [
   { id: COLOR, name: 'Color' },
@@ -33,28 +34,48 @@ const lists = [
 const resolvers = {
   Query: {
     lists: () => lists,
-    listItem: (root, { id }, { prisma }) =>
-      prisma.listItem.findUnique({ where: { id } }),
-    listItems: (root, args, { prisma }) => prisma.listItem.findMany(),
+    listItem: (_root: unknown, args: { id: string }, context: ContextType) => {
+      const { id } = args;
+      const { prisma } = context;
+      return prisma.listItem.findUnique({ where: { id } });
+    },
+    listItems: (_root: unknown, _args: unknown, context: ContextType) => {
+      const { prisma } = context;
+      return prisma.listItem.findMany();
+    },
     listsMobile: () => lists,
-    listItemsMobile: async (root, args, { prisma }) => {
-      if (args.date) {
-        const date = new Date(args.date);
-        const items = await prisma.listItem.findMany({
-          where: {
-            updatedAt: { gt: date },
-          },
-          orderBy: { updatedAt: 'desc' },
-        });
-        return items;
+    listItemsMobile: async (
+      _root: unknown,
+      args: { date: string },
+      context: ContextType
+    ) => {
+      try {
+        const { date } = args;
+        const { prisma } = context;
+        if (date) {
+          const items = await prisma.listItem.findMany({
+            where: {
+              updatedAt: { gt: new Date(date) },
+            },
+            orderBy: { updatedAt: 'desc' },
+          });
+          return items;
+        }
+        return prisma.listItem.findMany({ orderBy: { updatedAt: 'desc' } });
+      } catch (e) {
+        return errorResponse(e);
       }
-      return prisma.listItem.findMany({ orderBy: { updatedAt: 'desc' } });
     },
   },
   Mutation: {
-    upsertListItem: async (root, { listItem }, { prisma }) => {
+    upsertListItem: async (
+      _root: unknown,
+      args: { listItem: ListItemInputType },
+      context: ContextType
+    ) => {
       try {
-        const { id, list, item, state } = listItem;
+        const { id, list, item, state } = args.listItem;
+        const { prisma } = context;
         const data = {
           list,
           item,
@@ -73,8 +94,14 @@ const resolvers = {
         return errorResponse(e);
       }
     },
-    deleteListItem: async (root, { id }, { prisma }) => {
+    deleteListItem: async (
+      _root: unknown,
+      args: { id: string },
+      context: ContextType
+    ) => {
       try {
+        const { id } = args;
+        const { prisma } = context;
         await prisma.listItem.delete({ where: { id } });
         return successResponse(SUCCESS_DELETED);
       } catch (e) {

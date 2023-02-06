@@ -4,8 +4,8 @@ import { Menu } from 'antd';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
-import { t } from '../../constants/labels';
 import { CURRENT_USER } from '../../graphql/user/client';
+import { useTranslation } from '../../translations';
 
 interface NavItem {
   label: string;
@@ -13,66 +13,65 @@ interface NavItem {
   href: string;
 }
 
-const ADMIN_ITEMS: Array<NavItem> = [
-  {
-    label: t('menu.roles'),
-    key: 'ROLE',
-    href: '/admin/role',
-  },
-  {
-    label: t('menu.users'),
-    key: 'USER',
-    href: '/admin/user',
-  },
-  {
-    label: t('menu.listItems'),
-    key: 'LIST_ITEM',
-    href: '/admin/listItem',
-  },
-  {
-    label: t('menu.farms'),
-    key: 'FARM',
-    href: '/admin/farm',
-  },
-  {
-    label: t('menu.animals'),
-    key: 'ANIMAL',
-    href: '/admin/animal',
-  },
-  {
-    label: t('menu.upload'),
-    key: 'UPLOAD',
-    href: '/admin/upload',
-  },
-  {
-    label: t('menu.reports'),
-    key: '*',
-    href: '/',
-  },
-];
-
-const USER_ITEMS: Array<NavItem> = [
-  {
-    label: t('menu.stats'),
-    key: 'STATS',
-    href: '/',
-  },
-  {
-    label: t('menu.admin'),
-    key: '*',
-    href: '/admin',
-  },
-];
-
+type LayoutType = 'ADMIN' | 'USER';
 type Props = {
-  layoutType: 'ADMIN' | 'USER' | undefined;
+  layoutType: LayoutType;
 };
+
+const getMenuItems = (layoutType: LayoutType, t: any): NavItem[] =>
+  ({
+    ['ADMIN']: [
+      {
+        label: t.menu.roles,
+        key: 'ROLE',
+        href: '/admin/role',
+      },
+      {
+        label: t.menu.users,
+        key: 'USER',
+        href: '/admin/user',
+      },
+      {
+        label: t.menu.listItems,
+        key: 'LIST_ITEM',
+        href: '/admin/listItem',
+      },
+      {
+        label: t.menu.farms,
+        key: 'FARM',
+        href: '/admin/farm',
+      },
+      {
+        label: t.menu.animals,
+        key: 'ANIMAL',
+        href: '/admin/animal',
+      },
+      {
+        label: t.menu.upload,
+        key: 'UPLOAD',
+        href: '/admin/upload',
+      },
+      {
+        label: t.menu.stats,
+        key: '*',
+        href: '/',
+      },
+    ],
+    ['USER']: [
+      {
+        label: t.menu.stats,
+        key: 'STATS',
+        href: '/',
+      },
+    ],
+  }[layoutType] || []);
 
 const Navbar: React.FC<Props> = ({ layoutType }) => {
   const [navItems, setNavItems] = useState<NavItem[]>([]);
   const [current, setCurrent] = useState('');
 
   const router = useRouter();
+  const t = useTranslation();
 
   const {
     data: {
@@ -83,16 +82,27 @@ const Navbar: React.FC<Props> = ({ layoutType }) => {
   } = useQuery(CURRENT_USER);
 
   useEffect(() => {
-    const items = (layoutType === 'ADMIN' ? ADMIN_ITEMS : USER_ITEMS).filter(
-      (item) =>
-        modules.some(
-          (module: { key: string }) =>
-            item.key === module.key || item.key === '*'
-        )
+    const items = getMenuItems(layoutType, t).filter((item: NavItem) =>
+      modules.some(
+        (module: { key: string }) =>
+          item.key === module.key ||
+          (layoutType === 'ADMIN' && item.key === '*')
+      )
     );
+    if (layoutType === 'USER') {
+      const adminItems = getMenuItems('ADMIN', t).filter((item: NavItem) =>
+        modules.some((module: { key: string }) => item.key === module.key)
+      );
+      if (adminItems.length > 0) {
+        items.push({ ...adminItems[0], label: t.menu.admin });
+      }
+    }
     setNavItems(items);
-    setCurrent(items.find((item) => item.href === router.pathname)?.key || '*');
-  }, [layoutType, modules, router.pathname]);
+    setCurrent(
+      items.find((item: NavItem) => router.pathname.includes(item.href))?.key ||
+        '*'
+    );
+  }, [layoutType, modules, router.pathname, t]);
 
   const onClick: MenuProps['onClick'] = (e) => {
     router.push(navItems.find((item) => item.key === e.key)?.href || '/');

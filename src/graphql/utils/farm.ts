@@ -1,9 +1,11 @@
-import { ROLES } from './constants';
+import { RoleEnum } from '../enums';
+import { ContextType } from '../types';
 
-const { ADMIN, COMPANY, FARMER, COWBOY } = ROLES;
+const { ADMIN, COMPANY, FARMER, COWBOY } = RoleEnum;
 
-const getFarmsByUser = async (prisma, user) => {
-  const { id } = user;
+const getFarmsByUser = async (context: ContextType) => {
+  const { prisma, currentUser } = context;
+  const { id } = currentUser;
   const key = (
     await prisma.user.findUnique({
       where: { id },
@@ -12,11 +14,11 @@ const getFarmsByUser = async (prisma, user) => {
   )?.role.key;
   let farms;
   if (key === COWBOY) {
-    farms = await prisma.user
-      .findUnique({
-        where: { id },
-      })
-      .farmsAsCowboy();
+    farms = await prisma.cowboysOnFarms.findMany({
+      where: { cowboyId: id },
+      select: { farm: true },
+    });
+    return farms.map((item) => item.farm);
   } else if (key === FARMER) {
     farms = await prisma.user
       .findUnique({
@@ -30,7 +32,7 @@ const getFarmsByUser = async (prisma, user) => {
   } else if (key === ADMIN) {
     farms = await prisma.farm.findMany();
   }
-  return farms;
+  return farms || [];
 };
 
 export { getFarmsByUser };

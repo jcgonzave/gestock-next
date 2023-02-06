@@ -1,21 +1,22 @@
 import { Button, Col, Row, Space } from 'antd';
 import { useRouter } from 'next/router';
-import { t } from '../../constants/labels';
+import { useTranslation } from '../../translations';
 
-interface Props {
+type Props = {
   loading: boolean;
   isReadOnly?: boolean;
-}
+};
 
 const FormButtons: React.FC<Props> = ({ loading, isReadOnly }) => {
   const router = useRouter();
+  const t = useTranslation();
 
   return (
     <Row>
       <Col span={8} offset={8}>
         <Space>
           <Button className='btn-form' onClick={() => router.back()}>
-            {t('actions.cancel')}
+            {t.actions.cancel}
           </Button>
           <Button
             htmlType='submit'
@@ -24,7 +25,7 @@ const FormButtons: React.FC<Props> = ({ loading, isReadOnly }) => {
             className='btn-form'
             disabled={isReadOnly}
           >
-            {t('actions.save')}
+            {t.actions.save}
           </Button>
         </Space>
       </Col>

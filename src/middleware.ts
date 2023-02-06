@@ -1,5 +1,5 @@
-import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
 import { getDataFromToken } from './utils/tokenHandler';
 
 export async function middleware(req: NextRequest) {
@@ -15,9 +15,9 @@ export async function middleware(req: NextRequest) {
       return NextResponse.redirect(new URL('/login', req.url));
     }
   } else if (appToken) {
-    const user = await getDataFromToken(appToken);
+    const currentUser = await getDataFromToken(appToken);
 
-    if (user) {
+    if (currentUser) {
       return NextResponse.redirect(new URL('/', req.url));
     }
   }

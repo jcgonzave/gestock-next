@@ -26,7 +26,7 @@ import type { FilterConfirmProps } from 'antd/es/table/interface';
 import { DocumentNode } from 'graphql/language/ast';
 import { NextRouter, useRouter } from 'next/router';
 import { useRef } from 'react';
-import { t } from '../../constants/labels';
+import { useTranslation } from '../../translations';
 import { Loading, Title } from '../shared';
 
 const actionsColumn = (
@@ -40,14 +40,14 @@ const actionsColumn = (
   ) => void,
   route: string,
   router: NextRouter,
-  t: (text: string) => string
+  t: any
 ): ColumnType<any> => ({
-  title: t('actions.title'),
+  title: t.actions.title,
   dataIndex: 'action',
   align: 'right',
   render: (_, record) => (
     <Space>
-      <Tooltip title={t('actions.edit')}>
+      <Tooltip title={t.actions.edit}>
         <Button
           type='primary'
           shape='circle'
@@ -56,15 +56,15 @@ const actionsColumn = (
         />
       </Tooltip>
       <Popconfirm
-        title={t('actions.confirm')}
+        title={t.actions.confirm}
         onConfirm={() => {
           operation({ variables: { id: record.id } });
         }}
-        okText={t('actions.yes')}
-        cancelText={t('actions.no')}
+        okText={t.actions.yes}
+        cancelText={t.actions.no}
         placement='bottom'
       >
-        <Tooltip title={t('actions.delete')}>
+        <Tooltip title={t.actions.delete}>
           <Button
             type='primary'
             danger
@@ -77,14 +77,14 @@ const actionsColumn = (
   ),
 });
 
-interface Props {
+type Props = {
   title: string;
   fetch: { query: DocumentNode; response: string };
   remove: { mutation: DocumentNode; response: string };
   add: { text: string; route: string };
   edit: { route: string };
   columns: ColumnsType<any>;
-}
+};
 
 const List: React.FC<Props> = ({
   title,
@@ -97,6 +97,7 @@ const List: React.FC<Props> = ({
   const searchInput = useRef<InputRef>(null);
 
   const router = useRouter();
+  const t = useTranslation();
   const [messageApi, contextHolder] = message.useMessage();
 
   const { data } = useQuery(fetch.query);
@@ -105,7 +106,8 @@ const List: React.FC<Props> = ({
     onCompleted: (data) => {
       messageApi.open({
         type: data[remove.response].result ? 'success' : 'warning',
-        content: t(`messages.${data[remove.response].message}`),
+        content:
+          t.messages[data[remove.response].message as keyof typeof t.messages],
       });
     },
     onError: () => {},
@@ -133,7 +135,7 @@ const List: React.FC<Props> = ({
       <div style={{ padding: 8 }} onKeyDown={(e) => e.stopPropagation()}>
         <Input
           ref={searchInput}
-          placeholder={t('actions.search')}
+          placeholder={t.actions.search}
           value={selectedKeys[0]}
           onChange={(e) =>
             setSelectedKeys(e.target.value ? [e.target.value] : [])
@@ -149,14 +151,14 @@ const List: React.FC<Props> = ({
             size='small'
             style={{ width: 90 }}
           >
-            {t('actions.search')}
+            {t.actions.search}
           </Button>
           <Button
             onClick={() => clearFilters && handleReset(clearFilters, confirm)}
             size='small'
             style={{ width: 90 }}
           >
-            {t('actions.reset')}
+            {t.actions.reset}
           </Button>
         </Space>
       </div>

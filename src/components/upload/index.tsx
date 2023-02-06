@@ -4,33 +4,14 @@ import { Form, message, Select, Table, Upload as UploadAntd } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { useState } from 'react';
 import { read } from 'xlsx';
-import { t } from '../../constants/labels';
 import { FARMS } from '../../graphql/farm/client';
 import { BULK_UPLOAD_EXCEL } from '../../graphql/resume/client';
+import { useTranslation } from '../../translations';
 import { FormButtons } from '../admin';
 import { Title } from '../shared';
 
 const { Dragger } = UploadAntd;
 const { Option } = Select;
-
-const columns: ColumnsType<any> = [
-  {
-    title: t('invalidUpload.sheet'),
-    dataIndex: 'sheet',
-    key: 'sheet',
-  },
-  {
-    title: t('invalidUpload.row'),
-    dataIndex: 'row',
-    key: 'row',
-  },
-  {
-    title: t('invalidUpload.columns'),
-    dataIndex: 'columns',
-    key: 'columns',
-    render: (value) => <span>{value.join(', ')}</span>,
-  },
-];
 
 const formItemLayout = {
   labelCol: { span: 8 },
@@ -40,6 +21,26 @@ const formItemLayout = {
 const Upload = () => {
   const [invalidData, setInvalidData] = useState([]);
   const [messageApi, contextHolder] = message.useMessage();
+  const t = useTranslation();
+
+  const columns: ColumnsType<any> = [
+    {
+      title: t.upload.invalid.sheet,
+      dataIndex: 'sheet',
+      key: 'sheet',
+    },
+    {
+      title: t.upload.invalid.row,
+      dataIndex: 'row',
+      key: 'row',
+    },
+    {
+      title: t.upload.invalid.columns,
+      dataIndex: 'columns',
+      key: 'columns',
+      render: (value) => <span>{value.join(', ')}</span>,
+    },
+  ];
 
   const {
     data: { farms },
@@ -48,7 +49,7 @@ const Upload = () => {
     onCompleted: ({ bulkUploadExcel }) => {
       messageApi.open({
         type: 'success',
-        content: t('upload.completed'),
+        content: t.upload.completed,
       });
       setInvalidData(bulkUploadExcel.invalidData);
     },
@@ -65,21 +66,21 @@ const Upload = () => {
   const getResumes = (data: any) => {
     const resumes = [];
     let row = 2;
-    let animalCode = data[`A${row}`]?.v && String(data[`A${row}`]?.v);
+    let animalCode = data[`A${row}`] && String(data[`A${row}`].v);
     while (animalCode) {
       resumes.push({
         animalCode,
-        caravan: data[`B${row}`]?.v && String(data[`B${row}`]?.v),
-        birthday: data[`C${row}`]?.v && String(data[`C${row}`]?.v),
-        initialWeight: data[`D${row}`]?.v && String(data[`D${row}`]?.v),
-        breed: data[`E${row}`]?.v && String(data[`E${row}`]?.v),
-        stage: data[`F${row}`]?.v && String(data[`F${row}`]?.v),
-        gender: data[`G${row}`]?.v && String(data[`G${row}`]?.v),
-        color: data[`H${row}`]?.v && String(data[`H${row}`]?.v),
-        name: data[`I${row}`]?.v && String(data[`I${row}`]?.v),
+        caravan: data[`B${row}`] && String(data[`B${row}`].v),
+        birthday: data[`C${row}`] && String(data[`C${row}`].v),
+        initialWeight: data[`D${row}`] && String(data[`D${row}`].v),
+        breed: data[`E${row}`] && String(data[`E${row}`].v),
+        stage: data[`F${row}`] && String(data[`F${row}`].v),
+        gender: data[`G${row}`] && String(data[`G${row}`].v),
+        color: data[`H${row}`] && String(data[`H${row}`].v),
+        name: data[`I${row}`] && String(data[`I${row}`].v),
       });
       row = row += 1;
-      animalCode = data[`A${row}`]?.v && String(data[`A${row}`]?.v);
+      animalCode = data[`A${row}`] && String(data[`A${row}`].v);
     }
     return resumes;
   };
@@ -87,16 +88,16 @@ const Upload = () => {
   const getEvents = (data: any) => {
     const events = [];
     let row = 2;
-    let animalCode = data[`A${row}`]?.v && String(data[`A${row}`]?.v);
+    let animalCode = data[`A${row}`] && String(data[`A${row}`].v);
     while (animalCode) {
       events.push({
         animalCode,
-        list: data[`B${row}`]?.v && String(data[`B${row}`]?.v),
-        item: data[`C${row}`]?.v && String(data[`C${row}`]?.v),
-        comments: data[`D${row}`]?.v && String(data[`D${row}`]?.v),
+        list: data[`B${row}`] && String(data[`B${row}`].v),
+        item: data[`C${row}`] && String(data[`C${row}`].v),
+        comments: data[`D${row}`] && String(data[`D${row}`].v),
       });
       row = row += 1;
-      animalCode = data[`A${row}`]?.v && String(data[`A${row}`]?.v);
+      animalCode = data[`A${row}`] && String(data[`A${row}`].v);
     }
     return events;
   };
@@ -112,12 +113,12 @@ const Upload = () => {
   return (
     <>
       {contextHolder}
-      <Title text={t('upload.title')} />
+      <Title text={t.upload.title} />
       <Form {...formItemLayout} onFinish={onFinish}>
         <Form.Item
-          label={t('upload.farm')}
+          label={t.upload.farm}
           name='farmId'
-          rules={[{ required: true, message: t('rules.required') }]}
+          rules={[{ required: true, message: t.rules.required }]}
         >
           <Select>
             {farms.map((farm: any) => (
@@ -128,7 +129,7 @@ const Upload = () => {
           </Select>
         </Form.Item>
         <Form.Item
-          label={t('upload.file')}
+          label={t.upload.file}
           name='dragger'
           valuePropName='fileList'
           getValueFromEvent={(e) => {
@@ -138,13 +139,13 @@ const Upload = () => {
             }
             return e && e.fileList.slice(e.fileList.length - 1);
           }}
-          rules={[{ required: true, message: t('rules.required') }]}
+          rules={[{ required: true, message: t.rules.required }]}
         >
           <Dragger name='file' accept='.xlsx' beforeUpload={() => false}>
             <p className='ant-upload-drag-icon'>
               <InboxOutlined />
             </p>
-            <p className='ant-upload-text'>{t('upload.help')}</p>
+            <p className='ant-upload-text'>{t.upload.help}</p>
           </Dragger>
         </Form.Item>
         <FormButtons loading={loading} />
@@ -152,7 +153,7 @@ const Upload = () => {
 
       {invalidData.length > 0 && (
         <>
-          <h2 style={{ marginTop: 40 }}>{t('upload.resultTitle')}</h2>
+          <h2 style={{ marginTop: 40 }}>{t.upload.resultTitle}</h2>
           <Table dataSource={invalidData} columns={columns} />
         </>
       )}

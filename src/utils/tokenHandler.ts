@@ -1,23 +1,14 @@
 import { jwtVerify, SignJWT } from 'jose';
+import { CurrentUserType } from '../graphql/types';
 
-interface User {
-  id: string;
-  email: string;
-}
-
-interface JWT {
-  payload: User;
-  protectedHeader: {
-    alg: string;
-  };
-}
-
-export async function getTokenFromData(user: User): Promise<string | null> {
+export async function getTokenFromData(
+  currentUser: CurrentUserType = { id: '', email: '' }
+): Promise<string | null> {
   try {
     const alg = 'HS256';
     const token = await new SignJWT({
-      id: user.id || '',
-      email: user.email || '',
+      id: currentUser.id,
+      email: currentUser.email,
     })
       .setProtectedHeader({ alg })
       .sign(new TextEncoder().encode(process.env.SECRET_JWT));
@@ -30,14 +21,14 @@ export async function getTokenFromData(user: User): Promise<string | null> {
 
 export async function getDataFromToken(
   token: string | undefined
-): Promise<User | null> {
+): Promise<CurrentUserType | null> {
   try {
     if (token) {
       const data: any = await jwtVerify(
         token,
         new TextEncoder().encode(process.env.SECRET_JWT)
       );
-      const user: User = data.payload;
+      const user: CurrentUserType = data.payload;
       return user;
     }
     return null;

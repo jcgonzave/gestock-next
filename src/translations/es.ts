@@ -1,4 +1,4 @@
-const dictionary: any = {
+const es = {
   actions: {
     title: 'Acciones',
     ok: 'Aceptar',
@@ -40,7 +40,6 @@ const dictionary: any = {
   },
   lists: {
     COLOR: 'Color',
-    DISEASE: 'Enfermedad',
     STATE: 'Estado reproductivo',
     STAGE: 'Etapa de desarrollo',
     LOT: 'Lote',
@@ -58,10 +57,7 @@ const dictionary: any = {
     admin: 'Configuración',
     stats: 'Estadísticas',
     farms: 'Fincas',
-    weight: 'Informe de peso',
     listItems: 'Listas',
-    lots: 'Lotes de animales',
-    reports: 'Reportes',
     roles: 'Roles',
     users: 'Usuarios',
   },
@@ -71,13 +67,11 @@ const dictionary: any = {
     integer: 'Debe ser un número entero',
     minLength: 'Mínimo {{number}} caracteres',
     maxLength: 'Máximo {{number}} caracteres',
-    passwordMismatch: "'Las contraseñas ingresadas deben coincidir",
+    passwordMismatch: 'Las contraseñas ingresadas deben coincidir',
   },
   general: {
     unauthorized: 'Se requieren permisos para acceder a este sitio',
-    copyRight:
-      'Copyright © 2022 Trazii - Todos los derechos reservados. Un producto',
-    termsConditions: 'Términos y condiciones',
+    copyRight: 'Copyright © 2022 Gestock - Todos los derechos reservados',
   },
   login: {
     title: 'Iniciar sesión',
@@ -132,7 +126,7 @@ const dictionary: any = {
     formTitle: 'Usuario',
     parent: 'Superior',
     name: 'Nombre',
-    email: 'Email',
+    email: 'Correo electrónico',
     phone: 'Celular',
     role: 'Rol',
     addButton: 'Agregar usuario',
@@ -145,13 +139,13 @@ const dictionary: any = {
     help: 'Seleccione un archivo o arrástrelo a este cuadro',
     invalidExtension: 'El archivo debe ser de tipo {{extension}}',
     resultTitle: 'Resultado de la carga',
+    invalid: {
+      title: 'Datos no válidos encontrados en el archivo',
+      sheet: 'Hoja',
+      row: 'Fila',
+      columns: 'Columna(s) con datos no válidos',
+    },
     completed: 'El archivo ha sido procesado',
-  },
-  invalidUpload: {
-    title: 'Datos no válidos encontrados en el archivo',
-    sheet: 'Hoja',
-    row: 'Fila',
-    columns: 'Columna(s) con datos no válidos',
   },
   resume: {
     code: 'Número de TAG',
@@ -195,16 +189,4 @@ const dictionary: any = {
   },
 };
 
-export const t = (term: string): string => {
-  const [section, label] = term.split('.');
-  if (!section || !label) {
-    return '';
-  }
-  return dictionary[section] && (dictionary[section][label] || '');
-};
-
-export const getErrorMessage = (message: string): string => {
-  const key = `messages.${message.replace('Error: ', '')}`;
-  const translation = t(key);
-  return translation === key ? message : translation;
-};
+export default es;

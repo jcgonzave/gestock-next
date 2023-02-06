@@ -1,120 +1,161 @@
 import { getTokenFromData } from '../../utils/tokenHandler';
-import { errorResponse, successResponse } from '../utils/common';
-import { ERROR_MESSAGES, ROLES, SUCCESS_MESSAGES } from '../utils/constants';
+import { ErrorMessagesEnum, RoleEnum, SuccessMessagesEnum } from '../enums';
+import { ContextType, RoleType, UserInputType } from '../types';
+import { errorResponse, successResponse } from '../utils/responses';
 
-const { SUCCESS_EDITED, SUCCESS_SAVED, SUCCESS_DELETED } = SUCCESS_MESSAGES;
+const { SUCCESS_EDITED, SUCCESS_SAVED, SUCCESS_DELETED } = SuccessMessagesEnum;
 const {
   ERROR_USER_NOT_FOUND,
   ERROR_DELETE_HIMSELF,
   ERROR_FOREIGN_KEY,
   ERROR_DELETE_ADMIN,
-} = ERROR_MESSAGES;
-const { ADMIN, COMPANY, FARMER, COWBOY } = ROLES;
+} = ErrorMessagesEnum;
+const { ADMIN, COMPANY, FARMER, COWBOY } = RoleEnum;
 
 const resolvers = {
   Query: {
-    currentUser: (root, args, { prisma, user }) => {
-      if (!user) {
-        return errorResponse(ERROR_USER_NOT_FOUND);
-      }
-      return prisma.user.findUnique({ where: { id: user.id } });
-    },
-    user: (root, { id }, { prisma }) =>
-      prisma.user.findUnique({ where: { id } }),
-    users: async (root, args, { prisma, user }) => {
-      const role = await prisma.user
-        .findUnique({ where: { id: user.id } })
-        .role();
-      if (role.key === ADMIN) {
-        return prisma.user.findMany({
-          where: { role: { key: { not: ADMIN } } },
-          orderBy: { name: 'asc' },
-        });
-      }
-      return prisma.user.findMany({
-        where: { parentId: user.id },
-        orderBy: { name: 'asc' },
-      });
-    },
-    farmers: async (root, args, { prisma, user }) => {
-      const role = await prisma.user
-        .findUnique({ where: { id: user.id } })
-        .role();
-      if (role.key === ADMIN) {
-        return prisma.user.findMany({
-          where: { role: { key: FARMER } },
-          orderBy: { name: 'asc' },
-        });
-      }
-      if (role.key === FARMER) {
-        const farmer = await prisma.user.findUnique({ where: { id: user.id } });
-        return [farmer];
-      }
-      return prisma.user.findMany({
-        where: {
-          AND: [{ parentId: user.id }, { role: { key: FARMER } }],
-        },
-        orderBy: { name: 'asc' },
-      });
-    },
-    parentUsers: async (root, { childId }, { prisma, user }) => {
-      const roleKeys = [ADMIN, COMPANY, FARMER];
-      let childUser = null;
-      let parentUser = null;
-      let role = null;
-
-      if (childId) {
-        childUser = await prisma.user.findUnique({ where: { id: childId } });
-        if (childUser) {
-          parentUser = await prisma.user
-            .findUnique({ where: { id: childId } })
-            .parent();
+    currentUser: (_root: unknown, _args: unknown, context: ContextType) => {
+      try {
+        const { prisma, currentUser } = context;
+        if (!currentUser) {
+          return errorResponse(ERROR_USER_NOT_FOUND);
         }
+        return prisma.user.findUnique({ where: { id: currentUser.id } });
+      } catch (e) {
+        return errorResponse(e);
       }
-
-      if (!childUser) {
-        childUser = {};
-        parentUser = await prisma.user.findUnique({ where: { id: user.id } });
-      }
-
-      const currentRole = await prisma.user
-        .findUnique({ where: { id: user.id } })
-        .role();
-      if (currentRole.key === ADMIN || parentUser.id === user.id) {
-        role = currentRole;
-      } else {
-        role = await prisma.user
-          .findUnique({ where: { id: parentUser.id } })
+    },
+    user: (_root: unknown, args: { id: string }, context: ContextType) => {
+      const { id } = args;
+      const { prisma } = context;
+      return prisma.user.findUnique({ where: { id } });
+    },
+    users: async (_root: unknown, _args: unknown, context: ContextType) => {
+      try {
+        const { prisma, currentUser } = context;
+        const role = await prisma.user
+          .findUnique({ where: { id: currentUser.id } })
           .role();
-      }
-
-      if (roleKeys.indexOf(role.key) > -1) {
-        if (role.key === ADMIN) {
+        if (role?.key === ADMIN) {
           return prisma.user.findMany({
-            where: {
-              AND: [
-                { role: { key: { in: roleKeys } } },
-                { id: { not: childUser.id } },
-              ],
-            },
+            where: { role: { key: { not: ADMIN } } },
             orderBy: { name: 'asc' },
           });
         }
-        return [parentUser];
+        return prisma.user.findMany({
+          where: { parentId: currentUser.id },
+          orderBy: { name: 'asc' },
+        });
+      } catch (e) {
+        return errorResponse(e);
       }
-      return [];
+    },
+    farmers: async (_root: unknown, _args: unknown, context: ContextType) => {
+      try {
+        const { prisma, currentUser } = context;
+        const role = await prisma.user
+          .findUnique({ where: { id: currentUser.id } })
+          .role();
+
+        switch (role?.key) {
+          case ADMIN:
+            return prisma.user.findMany({
+              where: { role: { key: FARMER } },
+              orderBy: { name: 'asc' },
+            });
+          case FARMER:
+            const farmer = await prisma.user.findUnique({
+              where: { id: currentUser.id },
+            });
+            return [farmer];
+          default:
+            return prisma.user.findMany({
+              where: {
+                AND: [{ parentId: currentUser.id }, { role: { key: FARMER } }],
+              },
+              orderBy: { name: 'asc' },
+            });
+        }
+      } catch (e) {
+        return errorResponse(e);
+      }
+    },
+    parentUsers: async (
+      _root: unknown,
+      args: { childId: string },
+      context: ContextType
+    ) => {
+      try {
+        const { childId } = args;
+        const { prisma, currentUser } = context;
+        const roleKeys = [ADMIN, COMPANY, FARMER];
+        let childUser = null;
+        let parentUser = null;
+        let role: RoleType = null;
+
+        if (childId) {
+          childUser = await prisma.user.findUnique({ where: { id: childId } });
+          if (childUser) {
+            parentUser = await prisma.user
+              .findUnique({ where: { id: childId } })
+              .parent();
+          }
+        }
+
+        if (!childUser) {
+          childUser = {};
+          parentUser = await prisma.user.findUnique({
+            where: { id: currentUser.id },
+          });
+        }
+
+        const currentRole = await prisma.user
+          .findUnique({ where: { id: currentUser.id } })
+          .role();
+        if (currentRole?.key === ADMIN || parentUser?.id === currentUser.id) {
+          role = currentRole;
+        } else {
+          role = await prisma.user
+            .findUnique({ where: { id: parentUser?.id } })
+            .role();
+        }
+
+        if (roleKeys.some((key) => key === role?.key)) {
+          if (role?.key === ADMIN) {
+            return prisma.user.findMany({
+              where: {
+                AND: [
+                  { role: { key: { in: roleKeys } } },
+                  { id: { not: childUser.id } },
+                ],
+              },
+              orderBy: { name: 'asc' },
+            });
+          }
+          return [parentUser];
+        }
+        return [];
+      } catch (e) {
+        return errorResponse(e);
+      }
     },
   },
   Mutation: {
-    upsertUser: async (root, { user }, { prisma }) => {
+    upsertUser: async (
+      _root: unknown,
+      args: { user: UserInputType },
+      context: ContextType
+    ) => {
       try {
-        const { id, ...data } = user;
+        const { id, ...data } = args.user;
+        const { prisma } = context;
 
         await prisma.user.upsert({
           where: { id: id || '' },
           create: {
             ...data,
-            password: await getTokenFromData(data),
+            password:
+              (await getTokenFromData({ id, email: args.user.email })) || '',
           },
           update: data,
         });
@@ -126,38 +167,50 @@ const resolvers = {
         return errorResponse(e);
       }
     },
-    deleteUser: async (root, { id }, { prisma, user }) => {
+    deleteUser: async (
+      _root: unknown,
+      args: { id: string },
+      context: ContextType
+    ) => {
       try {
-        if (user.id === id) {
+        const { id } = args;
+        const { prisma, currentUser } = context;
+
+        if (currentUser.id === id) {
           return errorResponse(ERROR_DELETE_HIMSELF);
         }
 
-        const childrenCount = await prisma.user.findUnique({
+        const user = await prisma.user.findUnique({
           where: { id },
           select: { _count: { select: { children: true } } },
         });
+        const childrenCount = user?._count.children || 0;
         if (childrenCount > 0) {
           return errorResponse(ERROR_FOREIGN_KEY);
         }
 
         const role = await prisma.user.findUnique({ where: { id } }).role();
-        if (role.key === ADMIN) {
+        const key = role?.key;
+
+        if (key === ADMIN) {
           return errorResponse(ERROR_DELETE_ADMIN);
         }
-        if (role.key === FARMER) {
-          const farmsCount = await prisma.user.findUnique({
+        if (key === FARMER) {
+          const user = await prisma.user.findUnique({
             where: { id },
             select: { _count: { select: { farmsAsFarmer: true } } },
           });
+          const farmsCount = user?._count.farmsAsFarmer || 0;
           if (farmsCount > 0) {
             return errorResponse(ERROR_FOREIGN_KEY);
           }
         }
-        if (role.key === COWBOY) {
-          const farmsCount = await prisma.user.findUnique({
+        if (key === COWBOY) {
+          const user = await prisma.user.findUnique({
             where: { id },
             select: { _count: { select: { farmsAsCowboy: true } } },
           });
+          const farmsCount = user?._count.farmsAsCowboy || 0;
           if (farmsCount > 0) {
             return errorResponse(ERROR_FOREIGN_KEY);
           }
@@ -171,17 +224,43 @@ const resolvers = {
     },
   },
   User: {
-    role: (parent, args, { prisma }) =>
-      prisma.user.findUnique({ where: { id: parent.id } }).role(),
-    parent: (parent, args, { prisma }) =>
-      prisma.user.findUnique({ where: { id: parent.id } }).parent(),
-    children: (parent, args, { prisma }) =>
-      prisma.user.findUnique({ where: { id: parent.id } }).children(),
-    farmsAsFarmer: (parent, args, { prisma }) =>
-      prisma.user.findUnique({ where: { id: parent.id } }).farmsAsFarmer(),
-    farmsAsCowboy: async (parent, args, { prisma }) => {
+    role: (parent: { id: string }, _args: unknown, context: ContextType) => {
+      const { id } = parent;
+      const { prisma } = context;
+      return prisma.user.findUnique({ where: { id } }).role();
+    },
+    parent: (parent: { id: string }, _args: unknown, context: ContextType) => {
+      const { id } = parent;
+      const { prisma } = context;
+      return prisma.user.findUnique({ where: { id } }).parent();
+    },
+    children: (
+      parent: { id: string },
+      _args: unknown,
+      context: ContextType
+    ) => {
+      const { id } = parent;
+      const { prisma } = context;
+      return prisma.user.findUnique({ where: { id } }).children();
+    },
+    farmsAsFarmer: (
+      parent: { id: string },
+      _args: unknown,
+      context: ContextType
+    ) => {
+      const { id } = parent;
+      const { prisma } = context;
+      return prisma.user.findUnique({ where: { id } }).farmsAsFarmer();
+    },
+    farmsAsCowboy: async (
+      parent: { id: string },
+      _args: unknown,
+      context: ContextType
+    ) => {
+      const { id: cowboyId } = parent;
+      const { prisma } = context;
       const list = await prisma.cowboysOnFarms.findMany({
-        where: { cowboyId: parent.id },
+        where: { cowboyId },
         select: { farm: true },
       });
       return list.map((item) => item.farm);

@@ -2,13 +2,13 @@ import { useMutation, useQuery } from '@apollo/client';
 import { Form, message, Select } from 'antd';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
-import { t } from '../../constants/labels';
 import {
   ROLE,
   ROLES,
   ROLE_MASTERS,
   UPSERT_ROLE,
 } from '../../graphql/role/client';
+import { useTranslation } from '../../translations';
 import { FormButtons } from '../admin';
 import { Loading, Title } from '../shared';
 
@@ -43,6 +43,7 @@ const Role: React.FC<Props> = ({ id }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   const router = useRouter();
+  const t = useTranslation();
   const [messageApi, contextHolder] = message.useMessage();
 
   const {
@@ -59,7 +60,7 @@ const Role: React.FC<Props> = ({ id }) => {
     onCompleted: ({ upsertRole: { result, message } }) => {
       messageApi.open({
         type: result ? 'success' : 'warning',
-        content: t(`messages.${message}`),
+        content: t.messages[message as keyof typeof t.messages],
       });
       if (result) {
         router.push('/admin/role');
@@ -91,13 +92,13 @@ const Role: React.FC<Props> = ({ id }) => {
   return (
     <>
       {contextHolder}
-      <Title text={t('role.formTitle')} />
+      <Title text={t.role.formTitle} />
       <Form {...formItemLayout} onFinish={onFinish}>
         <Form.Item
-          label={t('role.name')}
+          label={t.role.name}
           name='key'
           initialValue={data?.key}
-          rules={[{ required: true, message: t('rules.required') }]}
+          rules={[{ required: true, message: t.rules.required }]}
         >
           <Select>
             {keyOptions.map((option) => (
@@ -108,10 +109,10 @@ const Role: React.FC<Props> = ({ id }) => {
           </Select>
         </Form.Item>
         <Form.Item
-          label={t('role.modules')}
+          label={t.role.modules}
           name='modules'
           initialValue={data?.modules.map((cowboy) => cowboy.id)}
-          rules={[{ required: true, message: t('rules.required') }]}
+          rules={[{ required: true, message: t.rules.required }]}
         >
           <Select mode='multiple'>
             {moduleOptions.map((option) => (

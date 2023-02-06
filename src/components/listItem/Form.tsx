@@ -2,13 +2,13 @@ import { useMutation, useQuery } from '@apollo/client';
 import { Form, Input, message, Select } from 'antd';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
-import { t } from '../../constants/labels';
 import {
   LIST_ITEM,
   LIST_ITEMS,
   LIST_ITEM_MASTERS,
   UPSERT_LIST_ITEM,
 } from '../../graphql/listItem/client';
+import { useTranslation } from '../../translations';
 import { FormButtons } from '../admin';
 import { Loading, Title } from '../shared';
 
@@ -44,6 +44,7 @@ const ListItem: React.FC<Props> = ({ id }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   const router = useRouter();
+  const t = useTranslation();
   const [messageApi, contextHolder] = message.useMessage();
 
   const {
@@ -60,7 +61,7 @@ const ListItem: React.FC<Props> = ({ id }) => {
     onCompleted: ({ upsertListItem: { result, message } }) => {
       messageApi.open({
         type: result ? 'success' : 'warning',
-        content: t(`messages.${message}`),
+        content: t.messages[message as keyof typeof t.messages],
       });
       if (result) {
         router.push('/admin/listItem');
@@ -94,13 +95,13 @@ const ListItem: React.FC<Props> = ({ id }) => {
   return (
     <>
       {contextHolder}
-      <Title text={t('listItem.formTitle')} />
+      <Title text={t.listItem.formTitle} />
       <Form {...formItemLayout} onFinish={onFinish}>
         <Form.Item
-          label={t('listItem.list')}
+          label={t.listItem.list}
           name='list'
           initialValue={data?.list}
-          rules={[{ required: true, message: t('rules.required') }]}
+          rules={[{ required: true, message: t.rules.required }]}
         >
           <Select>
             {listOptions.map((option) => (
@@ -111,18 +112,18 @@ const ListItem: React.FC<Props> = ({ id }) => {
           </Select>
         </Form.Item>
         <Form.Item
-          label={t('listItem.item')}
+          label={t.listItem.item}
           name='item'
           initialValue={data?.item}
-          rules={[{ required: true, message: t('rules.required') }]}
+          rules={[{ required: true, message: t.rules.required }]}
         >
           <Input />
         </Form.Item>
         <Form.Item
-          label={t('listItem.state')}
+          label={t.listItem.state}
           name='state'
           initialValue={data?.state}
-          rules={[{ required: true, message: t('rules.required') }]}
+          rules={[{ required: true, message: t.rules.required }]}
         >
           <Select>
             {stateOptions.map((option) => (

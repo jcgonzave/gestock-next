@@ -3,7 +3,6 @@ import { Form, Input, message, Select } from 'antd';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { ROLES } from '../../constants/enums';
-import { t } from '../../constants/labels';
 import {
   FARM,
   FARMS,
@@ -12,6 +11,7 @@ import {
 } from '../../graphql/farm/client';
 import { CURRENT_USER, USER } from '../../graphql/user/client';
 import { useApollo } from '../../lib/apolloClient';
+import { useTranslation } from '../../translations';
 import { FormButtons } from '../admin';
 import { Loading, Title } from '../shared';
 
@@ -50,6 +50,7 @@ const Farm: React.FC<Props> = ({ id }) => {
   const apolloClient = useApollo();
   const [form] = Form.useForm();
   const router = useRouter();
+  const t = useTranslation();
   const [messageApi, contextHolder] = message.useMessage();
 
   const {
@@ -66,7 +67,7 @@ const Farm: React.FC<Props> = ({ id }) => {
     onCompleted: ({ upsertFarm: { result, message } }) => {
       messageApi.open({
         type: result ? 'success' : 'warning',
-        content: t(`messages.${message}`),
+        content: t.messages[message as keyof typeof t.messages],
       });
       if (result) {
         router.push('/admin/farm');
@@ -132,21 +133,21 @@ const Farm: React.FC<Props> = ({ id }) => {
   return (
     <>
       {contextHolder}
-      <Title text={t('farm.formTitle')} />
+      <Title text={t.farm.formTitle} />
       <Form form={form} {...formItemLayout} onFinish={onFinish}>
         <Form.Item
-          label={t('farm.name')}
+          label={t.farm.name}
           name='name'
           initialValue={data?.name}
-          rules={[{ required: true, message: t('rules.required') }]}
+          rules={[{ required: true, message: t.rules.required }]}
         >
           <Input disabled={isReadOnly} />
         </Form.Item>
         <Form.Item
-          label={t('farm.farmer')}
+          label={t.farm.farmer}
           name='farmerId'
           initialValue={data?.farmer.id}
-          rules={[{ required: true, message: t('rules.required') }]}
+          rules={[{ required: true, message: t.rules.required }]}
         >
           <Select
             onChange={onChangeFarmer}
@@ -160,10 +161,10 @@ const Farm: React.FC<Props> = ({ id }) => {
           </Select>
         </Form.Item>
         <Form.Item
-          label={t('farm.cowboys')}
+          label={t.farm.cowboys}
           name='cowboys'
           initialValue={data?.cowboys.map((cowboy) => cowboy.id)}
-          rules={[{ required: true, message: t('rules.required') }]}
+          rules={[{ required: true, message: t.rules.required }]}
         >
           <Select mode='multiple' disabled={isReadOnly}>
             {cowboyOptions.map((option) => (

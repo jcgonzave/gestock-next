@@ -3,7 +3,6 @@ import { Form, Input, message, Select } from 'antd';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { ROLES } from '../../constants/enums';
-import { t } from '../../constants/labels';
 import {
   ANIMAL,
   ANIMALS,
@@ -11,6 +10,7 @@ import {
   UPSERT_ANIMAL,
 } from '../../graphql/animal/client';
 import { CURRENT_USER } from '../../graphql/user/client';
+import { useTranslation } from '../../translations';
 import { FormButtons } from '../admin';
 import { Loading, Title } from '../shared';
 
@@ -43,6 +43,7 @@ const Animal: React.FC<Props> = ({ id }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   const router = useRouter();
+  const t = useTranslation();
   const [messageApi, contextHolder] = message.useMessage();
 
   const {
@@ -63,7 +64,7 @@ const Animal: React.FC<Props> = ({ id }) => {
     onCompleted: ({ upsertAnimal: { result, message } }) => {
       messageApi.open({
         type: result ? 'success' : 'warning',
-        content: t(`messages.${message}`),
+        content: t.messages[message as keyof typeof t.messages],
       });
       if (result) {
         router.push('/admin/animal');
@@ -105,21 +106,21 @@ const Animal: React.FC<Props> = ({ id }) => {
   return (
     <>
       {contextHolder}
-      <Title text={t('animal.formTitle')} />
+      <Title text={t.animal.formTitle} />
       <Form {...formItemLayout} onFinish={onFinish}>
         <Form.Item
-          label={t('animal.code')}
+          label={t.animal.code}
           name='code'
           initialValue={data?.code}
-          rules={[{ required: true, message: t('rules.required') }]}
+          rules={[{ required: true, message: t.rules.required }]}
         >
           <Input disabled={isReadOnly} />
         </Form.Item>
         <Form.Item
-          label={t('animal.farm')}
+          label={t.animal.farm}
           name='farmId'
           initialValue={data?.farm.id}
-          rules={[{ required: true, message: t('rules.required') }]}
+          rules={[{ required: true, message: t.rules.required }]}
         >
           <Select disabled={isReadOnly}>
             {farmOptions.map((option) => (

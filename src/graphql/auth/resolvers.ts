@@ -1,30 +1,29 @@
 import bcrypt from 'bcryptjs';
-import { getTokenFromData, getDataFromToken } from '../../utils/tokenHandler';
-import { successResponse, errorResponse } from '../utils/common';
-import { SUCCESS_MESSAGES, ERROR_MESSAGES } from '../utils/constants';
+import { getDataFromToken, getTokenFromData } from '../../utils/tokenHandler';
+import { ErrorMessagesEnum, SuccessMessagesEnum } from '../enums';
+import { ContextType, UserType } from '../types';
+import { errorResponse, successResponse } from '../utils/responses';
 
+const { SUCCESS_SESSION_STARTED, SUCCESS_MAIL_SENT } = SuccessMessagesEnum;
 const {
   ERROR_USER_NOT_FOUND,
   ERROR_INVALID_USER_OR_PASSWORD,
   ERROR_PASSWORD_MUST_MATCH,
   ERROR_INVALID_TOKEN,
-} = ERROR_MESSAGES;
+} = ErrorMessagesEnum;
 
-const { SUCCESS_SESSION_STARTED, SUCCESS_MAIL_SENT } = SUCCESS_MESSAGES;
-
-const validateUser = async (user, password) => {
+const validateUser = async (user: UserType, password: string) => {
   if (!user || !user.password) {
     return errorResponse(ERROR_USER_NOT_FOUND);
   }
-
   const passwordMatch = await bcrypt.compare(password, user.password);
-
   if (!passwordMatch) {
     return errorResponse(ERROR_INVALID_USER_OR_PASSWORD);
   }
+  return true;
 };
 
-const validateAndGetDataToken = async (token) => {
+const validateAndGetDataToken = async (token: string) => {
   if (!token) {
     return errorResponse(ERROR_INVALID_TOKEN);
   }
@@ -33,98 +32,147 @@ const validateAndGetDataToken = async (token) => {
 
 const resolvers = {
   Query: {
-    validatePasswordResetToken: async (root, { token }) => {
-      const data = await validateAndGetDataToken(token);
-      if (data === null) {
-        return false;
+    validatePasswordResetToken: async (
+      _root: unknown,
+      args: { token: string }
+    ) => {
+      try {
+        const { token } = args;
+        const data = await validateAndGetDataToken(token);
+        if (data === null) {
+          return false;
+        }
+        return true;
+      } catch (e) {
+        return errorResponse(e);
       }
-      return true;
     },
   },
   Mutation: {
-    login: async (root, { email, password }, { prisma, res }) => {
-      const currentUser = await prisma.user.findUnique({ where: { email } });
-      await validateUser(currentUser, password);
+    login: async (
+      _root: unknown,
+      args: { email: string; password: string },
+      context: ContextType
+    ) => {
+      try {
+        const { email, password } = args;
+        const { prisma, res } = context;
+        const user = await prisma.user.findUnique({ where: { email } });
+        await validateUser(user, password);
 
-      const token = await getTokenFromData(currentUser);
-      res.setHeader(
-        'Set-Cookie',
-        `appToken=${encodeURIComponent(token)}; SameSite=Strict; Path=/`
-      );
+        const token = await getTokenFromData(user || undefined);
+        if (token) {
+          res.setHeader(
+            'Set-Cookie',
+            `appToken=${encodeURIComponent(token)}; SameSite=Strict; Path=/`
+          );
 
-      return {
-        token,
-        user: currentUser,
-        response: {
-          status: 200,
-          message: SUCCESS_SESSION_STARTED,
-          result: true,
-        },
-      };
+          return {
+            token,
+            user,
+            response: {
+              status: 200,
+              message: SUCCESS_SESSION_STARTED,
+              result: true,
+            },
+          };
+        }
+        return errorResponse(ERROR_INVALID_TOKEN);
+      } catch (e) {
+        return errorResponse(e);
+      }
     },
     changePassword: async (
-      root,
-      { currentPassword, newPassword, confirmNewPassword },
-      { prisma, user }
+      _root: unknown,
+      args: {
+        currentPassword: string;
+        newPassword: string;
+        confirmNewPassword: string;
+      },
+      context: ContextType
     ) => {
-      if (newPassword !== confirmNewPassword) {
-        return errorResponse(ERROR_PASSWORD_MUST_MATCH);
+      try {
+        const { currentPassword, newPassword, confirmNewPassword } = args;
+        const {
+          prisma,
+          currentUser: { id },
+        } = context;
+
+        if (newPassword !== confirmNewPassword) {
+          return errorResponse(ERROR_PASSWORD_MUST_MATCH);
+        }
+
+        let user = await prisma.user.findUnique({ where: { id } });
+        await validateUser(user, currentPassword);
+
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+        user = await prisma.user.update({
+          where: { id },
+          data: { password: hashedPassword },
+        });
+
+        const token = await getTokenFromData(user);
+
+        return { token, user };
+      } catch (e) {
+        return errorResponse(e);
       }
-
-      let currentUser = await prisma.user.findUnique({
-        where: { id: user.id },
-      });
-      await validateUser(currentUser, currentPassword);
-
-      const hashedPassword = await bcrypt.hash(newPassword, 10);
-
-      currentUser = await prisma.user.update({
-        where: { id: user.id },
-        data: { password: hashedPassword },
-      });
-
-      const token = await getTokenFromData(currentUser);
-
-      return {
-        token,
-        user: currentUser,
-      };
     },
-    passwordRecovery: async (root, { email }, { prisma }) => {
-      const currentUser = await prisma.user.findUnique({ where: { email } });
+    passwordRecovery: async (
+      _root: unknown,
+      args: { email: string },
+      context: ContextType
+    ) => {
+      try {
+        const { email } = args;
+        const { prisma } = context;
+        const user = await prisma.user.findUnique({ where: { email } });
 
-      if (currentUser) {
-        // await sendResetMail(currentUser, getTokenFromData);
+        if (user) {
+          // await sendResetMail(user, getTokenFromData(user));
+        }
+
+        return successResponse(SUCCESS_MAIL_SENT);
+      } catch (e) {
+        return errorResponse(e);
       }
-
-      return successResponse(SUCCESS_MAIL_SENT);
     },
-    passwordReset: async (root, args, { prisma }) => {
-      const { password, confirmPassword, token } = args;
+    passwordReset: async (
+      _root: unknown,
+      args: { password: string; confirmPassword: string; token: string },
+      context: ContextType
+    ) => {
+      try {
+        const { password, confirmPassword, token } = args;
+        const { prisma } = context;
 
-      if (password !== confirmPassword) {
-        return errorResponse(ERROR_PASSWORD_MUST_MATCH);
+        if (password !== confirmPassword) {
+          return errorResponse(ERROR_PASSWORD_MUST_MATCH);
+        }
+
+        const data = await validateAndGetDataToken(token);
+        if (data === null) {
+          return errorResponse(ERROR_INVALID_TOKEN);
+        }
+
+        const user = await prisma.user.findUnique({
+          where: { email: data.email },
+        });
+        if (!user) {
+          return errorResponse(ERROR_USER_NOT_FOUND);
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+        await prisma.user.update({
+          where: { email: user.email },
+          data: { password: hashedPassword },
+        });
+
+        return successResponse();
+      } catch (e) {
+        return errorResponse(e);
       }
-
-      const data = await validateAndGetDataToken(token);
-      if (data === null) {
-        return errorResponse(ERROR_INVALID_TOKEN);
-      }
-
-      const currentUser = await prisma.user.findUnique({
-        where: { email: data.email },
-      });
-      if (!currentUser) {
-        return errorResponse(ERROR_USER_NOT_FOUND);
-      }
-
-      const hashedPassword = await bcrypt.hash(password, 10);
-      await prisma.user.update({
-        where: { email: currentUser.email },
-        data: { password: hashedPassword },
-      });
-
-      return successResponse();
     },
   },
 };

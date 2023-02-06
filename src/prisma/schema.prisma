@@ -196,6 +196,8 @@ model Animal {
   farmId String
   resume Resume?
   code   String  @unique
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   @@index([farmId])
 }

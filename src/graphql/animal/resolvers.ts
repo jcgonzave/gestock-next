@@ -1,33 +1,55 @@
-import { successResponse, errorResponse } from '../utils/common';
+import { ErrorMessagesEnum, SuccessMessagesEnum } from '../enums';
+import { AnimalInputType, ContextType } from '../types';
 import { getFarmsByUser } from '../utils/farm';
-import { SUCCESS_MESSAGES, ERROR_MESSAGES } from '../utils/constants';
+import { errorResponse, successResponse } from '../utils/responses';
 
-const { SUCCESS_EDITED, SUCCESS_SAVED, SUCCESS_DELETED } = SUCCESS_MESSAGES;
-const { ERROR_FOREIGN_KEY } = ERROR_MESSAGES;
+const { SUCCESS_EDITED, SUCCESS_SAVED, SUCCESS_DELETED } = SuccessMessagesEnum;
+const { ERROR_FOREIGN_KEY } = ErrorMessagesEnum;
 
 const resolvers = {
   Query: {
-    animal: async (root, { id }, { prisma, user }) => {
-      const farms = await getFarmsByUser(prisma, user);
-      const animal = await prisma.animal.findUnique({
-        where: { id },
-      });
-      if (farms.some((farm) => farm.id === animal.farmId)) {
-        return animal;
+    animal: async (
+      _root: unknown,
+      args: { id: string },
+      context: ContextType
+    ) => {
+      try {
+        const { id } = args;
+        const { prisma } = context;
+        const farms = await getFarmsByUser(context);
+        const animal = await prisma.animal.findUnique({
+          where: { id },
+        });
+        if (farms.some((farm) => farm.id === animal?.farmId)) {
+          return animal;
+        }
+        return null;
+      } catch (e) {
+        return errorResponse(e);
       }
-      return null;
     },
-    animals: async (root, args, { prisma, user }) => {
-      const farms = await getFarmsByUser(prisma, user);
-      const animals = await prisma.animal.findMany({
-        where: { farmId: { in: farms.map((farm) => farm.id) } },
-      });
-      return animals;
+    animals: async (_root: unknown, _args: unknown, context: ContextType) => {
+      try {
+        const { prisma } = context;
+        const farms = await getFarmsByUser(context);
+        const animals = await prisma.animal.findMany({
+          where: { farmId: { in: farms.map((farm) => farm.id) } },
+        });
+        return animals;
+      } catch (e) {
+        return errorResponse(e);
+      }
     },
   },
   Mutation: {
-    upsertAnimal: async (root, { animal }, { prisma }) => {
+    upsertAnimal: async (
+      _root: unknown,
+      args: { animal: AnimalInputType },
+      context: ContextType
+    ) => {
       try {
+        const { animal } = args;
+        const { prisma } = context;
         const { id, ...data } = animal;
 
         await prisma.animal.upsert({
@@ -41,12 +63,16 @@ const resolvers = {
         return errorResponse(e);
       }
     },
-    deleteAnimal: async (root, { id }, { prisma }) => {
+    deleteAnimal: async (
+      _root: unknown,
+      args: { id: string },
+      context: ContextType
+    ) => {
       try {
+        const { id } = args;
+        const { prisma } = context;
         const resume = await prisma.animal
-          .findUnique({
-            where: { id },
-          })
+          .findUnique({ where: { id } })
           .resume();
         if (resume) {
           return errorResponse(ERROR_FOREIGN_KEY);
@@ -60,18 +86,16 @@ const resolvers = {
     },
   },
   Animal: {
-    farm: (parent, args, { prisma }) =>
-      prisma.animal
-        .findUnique({
-          where: { id: parent.id },
-        })
-        .farm(),
-    resume: (parent, args, { prisma }) =>
-      prisma.animal
-        .findUnique({
-          where: { id: parent.id },
-        })
-        .resume(),
+    farm: (parent: { id: string }, _args: unknown, context: ContextType) => {
+      const { id } = parent;
+      const { prisma } = context;
+      return prisma.animal.findUnique({ where: { id } }).farm();
+    },
+    resume: (parent: { id: string }, _args: unknown, context: ContextType) => {
+      const { id } = parent;
+      const { prisma } = context;
+      return prisma.animal.findUnique({ where: { id } }).resume();
+    },
   },
 };
 

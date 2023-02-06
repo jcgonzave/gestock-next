@@ -1,13 +1,14 @@
 import { GraphQLError } from 'graphql';
-import { ERROR_MESSAGES } from './constants';
+import { ErrorMessagesEnum } from '../enums';
+import { ContextType } from '../types';
 
-const { ERROR_NO_TOKEN_SENT, ERROR_NO_MODULE_ACCESS } = ERROR_MESSAGES;
+const { ERROR_NO_TOKEN_SENT, ERROR_NO_MODULE_ACCESS } = ErrorMessagesEnum;
 
-function checkAuthentication(context) {
+function checkAuthentication(context: ContextType) {
   if (context.ssrMode) {
     return;
   }
-  if (!context || !context.user) {
+  if (!context || !context.currentUser) {
     throw new GraphQLError(ERROR_NO_TOKEN_SENT, {
       extensions: {
         code: 'UNAUTHENTICATED',
@@ -16,11 +17,11 @@ function checkAuthentication(context) {
   }
 }
 
-async function checkAuthorization(context, module) {
+async function checkAuthorization(context: ContextType, module: any) {
   if (context.ssrMode) {
     return;
   }
-  if (!context || !context.user || !module) {
+  if (!context || !context.currentUser || !module) {
     throw new GraphQLError(ERROR_NO_MODULE_ACCESS, {
       extensions: {
         code: 'FORBIDDEN',
@@ -28,12 +29,14 @@ async function checkAuthorization(context, module) {
     });
   }
 
-  const { roleId } = await prisma.user.findUnique({
-    where: { id: context.user.id },
+  const { prisma, currentUser } = context;
+  const user = await prisma.user.findUnique({
+    where: { id: currentUser.id },
     select: {
       roleId: true,
     },
   });
+  const roleId = user?.roleId;
 
   const modules = await prisma.modulesOnRoles.findMany({
     where: { roleId },

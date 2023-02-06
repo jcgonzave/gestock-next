@@ -12,16 +12,14 @@ const clientContext = async (req: NextApiRequest, res: NextApiResponse) => {
     const autorization = req.headers.authorization || '';
     token = autorization.split(' ')[1];
   }
-  const user = await getDataFromToken(token);
-
-  return { res, prisma, user };
+  const currentUser = await getDataFromToken(token);
+  return { res, prisma, currentUser };
 };
 
 const serverContext = async ({ req, res }: GetServerSidePropsContext) => {
   const { appToken } = req.cookies;
-  const user = await getDataFromToken(appToken);
-
-  return { res, prisma, user, ssrMode: true };
+  const currentUser = await getDataFromToken(appToken);
+  return { res, prisma, currentUser, ssrMode: true };
 };
 
 export { clientContext, serverContext };

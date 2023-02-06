@@ -1,26 +1,44 @@
-import { errorResponse, successResponse } from '../utils/common';
-import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '../utils/constants';
+import { ErrorMessagesEnum, SuccessMessagesEnum } from '../enums';
+import { ContextType, FarmInputType } from '../types';
 import { getFarmsByUser } from '../utils/farm';
+import { errorResponse, successResponse } from '../utils/responses';
 
-const { SUCCESS_EDITED, SUCCESS_SAVED, SUCCESS_DELETED } = SUCCESS_MESSAGES;
-const { ERROR_FOREIGN_KEY } = ERROR_MESSAGES;
+const { SUCCESS_EDITED, SUCCESS_SAVED, SUCCESS_DELETED } = SuccessMessagesEnum;
+const { ERROR_FOREIGN_KEY } = ErrorMessagesEnum;
 
 const resolvers = {
   Query: {
-    farm: async (root, { id }, { prisma, user }) => {
-      const farms = await getFarmsByUser(prisma, user);
-      if (farms.some((farm) => farm.id === id)) {
-        return prisma.farm.findUnique({ where: { id } });
+    farm: async (
+      _root: unknown,
+      args: { id: string },
+      context: ContextType
+    ) => {
+      try {
+        const { id } = args;
+        const { prisma } = context;
+        const farms = await getFarmsByUser(context);
+        if (farms.some((farm) => farm.id === id)) {
+          return prisma.farm.findUnique({ where: { id } });
+        }
+        return null;
+      } catch (e) {
+        return errorResponse(e);
       }
-      return null;
     },
-    farms: (root, args, { prisma, user }) => getFarmsByUser(prisma, user),
-    farmsMobile: (root, args, { prisma, user }) => getFarmsByUser(prisma, user),
+    farms: (_root: unknown, _args: unknown, context: ContextType) =>
+      getFarmsByUser(context),
+    farmsMobile: (_root: unknown, _args: unknown, context: ContextType) =>
+      getFarmsByUser(context),
   },
   Mutation: {
-    upsertFarm: async (root, { farm }, { prisma, user }) => {
+    upsertFarm: async (
+      _root: unknown,
+      args: { farm: FarmInputType },
+      context: ContextType
+    ) => {
       try {
-        const { id, name, farmerId, cowboys } = farm;
+        const { id, name, farmerId, cowboys } = args.farm;
+        const { prisma } = context;
 
         const create = {
           name,
@@ -49,16 +67,22 @@ const resolvers = {
         return errorResponse(e);
       }
     },
-    deleteFarm: async (root, { id }, { prisma }) => {
+    deleteFarm: async (
+      _root: unknown,
+      args: { id: string },
+      context: ContextType
+    ) => {
       try {
-        const {
-          _count: { animals },
-        } = await prisma.farm.findUnique({
+        const { id } = args;
+        const { prisma } = context;
+
+        const farm = await prisma.farm.findUnique({
           where: { id },
           select: { _count: { select: { animals: true } } },
         });
+        const animalsCount = farm?._count.animals || 0;
 
-        if (animals > 0) {
+        if (animalsCount > 0) {
           return errorResponse(ERROR_FOREIGN_KEY);
         }
 
@@ -70,25 +94,29 @@ const resolvers = {
     },
   },
   Farm: {
-    farmer: (parent, args, { prisma }) =>
-      prisma.farm
-        .findUnique({
-          where: { id: parent.id },
-        })
-        .farmer(),
-    cowboys: async (parent, args, { prisma }) => {
+    farmer: (parent: { id: string }, _args: unknown, context: ContextType) => {
+      const { id } = parent;
+      const { prisma } = context;
+      return prisma.farm.findUnique({ where: { id } }).farmer();
+    },
+    cowboys: async (
+      parent: { id: string },
+      _args: unknown,
+      context: ContextType
+    ) => {
+      const { id: farmId } = parent;
+      const { prisma } = context;
       const list = await prisma.cowboysOnFarms.findMany({
-        where: { farmId: parent.id },
+        where: { farmId },
         select: { cowboy: true },
       });
       return list.map((item) => item.cowboy);
     },
-    animals: (parent, args, { prisma }) =>
-      prisma.farm
-        .findUnique({
-          where: { id: parent.id },
-        })
-        .animals(),
+    animals: (parent: { id: string }, _args: unknown, context: ContextType) => {
+      const { id } = parent;
+      const { prisma } = context;
+      return prisma.farm.findUnique({ where: { id } }).animals();
+    },
   },
 };
 

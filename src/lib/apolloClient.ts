@@ -10,7 +10,7 @@ import { createUploadLink } from 'apollo-upload-client';
 import merge from 'deepmerge';
 import isEqual from 'lodash/isEqual';
 import { useMemo } from 'react';
-import { t } from '../constants/labels';
+import t from '../translations/es';
 
 const showError = (error: string) => {
   message.error(error);
@@ -19,9 +19,9 @@ const showError = (error: string) => {
 const errorLink = onError(({ graphQLErrors, networkError }) => {
   if (graphQLErrors) {
     graphQLErrors.forEach(({ message }) => {
-      const key = `messages.${message.replace('Error: ', '')}`;
-      const translation = t(key);
-      showError(!translation || translation === key ? message : translation);
+      const translation =
+        t.messages[message.replace('Error: ', '') as keyof typeof t.messages];
+      showError(translation || message);
     });
   }
   if (networkError) {

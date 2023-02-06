@@ -4,47 +4,15 @@ import type { ColumnsType } from 'antd/es/table';
 import { useEffect, useState } from 'react';
 import { Loading, Title } from '../../components/shared';
 import { LISTS } from '../../constants/enums';
-import { t } from '../../constants/labels';
 import { FARMS } from '../../graphql/farm/client';
 import { STATS_REPORT } from '../../graphql/report/client';
+import { useTranslation } from '../../translations';
 
 const { Option } = Select;
 const { MonthPicker } = DatePicker;
 const { LOT, STATE, LOSS, VACCINE } = LISTS;
 
 type DataSource = { item: string; value: string };
-
-const commonColumns: ColumnsType<DataSource> = [
-  {
-    title: t('report.stats.item'),
-    dataIndex: 'item',
-  },
-];
-
-const resumeColumns: ColumnsType<DataSource> = commonColumns.concat([
-  {
-    title: t('report.stats.animals'),
-    dataIndex: 'value',
-  },
-]);
-
-const eventColumns: ColumnsType<DataSource> = commonColumns.concat([
-  {
-    title: t('report.stats.events'),
-    dataIndex: 'value',
-  },
-]);
-
-const accessColumns: ColumnsType<DataSource> = [
-  {
-    title: t('report.stats.user'),
-    dataIndex: 'item',
-  },
-  {
-    title: t('report.stats.date'),
-    dataIndex: 'value',
-  },
-];
 
 type Table = {
   id: string;
@@ -64,6 +32,25 @@ const Stats = () => {
   const [resumeTables, setResumeTables] = useState<Table[]>([]);
   const [eventTables, setEventTables] = useState<Table[]>([]);
   const [accessTables, setAccessTables] = useState<Table[]>([]);
+
+  const t = useTranslation();
+
+  const commonColumns: ColumnsType<DataSource> = [
+    { title: t.stats.item, dataIndex: 'item' },
+  ];
+
+  const resumeColumns: ColumnsType<DataSource> = commonColumns.concat([
+    { title: t.stats.animals, dataIndex: 'value' },
+  ]);
+
+  const eventColumns: ColumnsType<DataSource> = commonColumns.concat([
+    { title: t.stats.events, dataIndex: 'value' },
+  ]);
+
+  const accessColumns: ColumnsType<DataSource> = [
+    { title: t.stats.user, dataIndex: 'item' },
+    { title: t.stats.date, dataIndex: 'value' },
+  ];
 
   const {
     data: { farms },
@@ -94,7 +81,7 @@ const Stats = () => {
 
         resumeLists.push({
           id: key,
-          title: t(`resume.${key}`),
+          title: t.resume[key as keyof typeof t.resume],
           columns: resumeColumns,
           dataSource: Object.keys(items).map((key) => ({
             item: key,
@@ -118,7 +105,7 @@ const Stats = () => {
 
         eventLists.push({
           id: key,
-          title: t(`lists.${key}`),
+          title: t.lists[key],
           columns: eventColumns,
           dataSource: Object.keys(items).map((key) => ({
             item: key,
@@ -143,7 +130,7 @@ const Stats = () => {
 
         accessLists.push({
           id: key,
-          title: t('stats.access'),
+          title: t.stats.access,
           columns: accessColumns,
           dataSource: Object.keys(items).map((key) => ({
             item: key,
@@ -163,10 +150,10 @@ const Stats = () => {
   return (
     <>
       <div className='title-container'>
-        <Title text={t('menu.stats')} />
+        <Title text={t.menu.stats} />
 
         <Select
-          placeholder={t('report.farm')}
+          placeholder={t.report.farm}
           style={{ width: 300, marginBottom: 10 }}
           value={farmId}
           onChange={(value) => {
@@ -180,7 +167,7 @@ const Stats = () => {
           ))}
         </Select>
         <MonthPicker
-          placeholder={t('report.month')}
+          placeholder={t.report.month}
           value={date}
           onChange={(value: any) => {
             setDate(value);

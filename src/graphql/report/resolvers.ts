@@ -1,43 +1,54 @@
-import { startOfMonth, endOfMonth } from 'date-fns';
+import { endOfMonth, startOfMonth } from 'date-fns';
+import { ContextType, ReportInputType } from '../types';
+import { errorResponse } from '../utils/responses';
 
 const resolvers = {
   Query: {
-    statsReport: async (root, { report }, { prisma }) => {
-      const { farmId, date } = report;
+    statsReport: async (
+      _root: unknown,
+      args: { report: ReportInputType },
+      context: ContextType
+    ) => {
+      try {
+        const { farmId, date } = args.report;
+        const { prisma } = context;
 
-      const startMonth = startOfMonth(new Date(date));
-      const endMonth = endOfMonth(new Date(date));
+        const startMonth = startOfMonth(new Date(date));
+        const endMonth = endOfMonth(new Date(date));
 
-      if (farmId) {
-        const animals = await prisma.animal.findMany({
-          where: { farmId: farmId },
-        });
-        const codes = animals.map((animal) => animal.code);
+        if (farmId) {
+          const animals = await prisma.animal.findMany({
+            where: { farmId: farmId },
+          });
+          const codes = animals.map((animal) => animal.code);
 
-        const resumes = await prisma.resume.findMany({
-          where: { animalCode: { in: codes } },
-          include: {
-            breed: true,
-            stage: true,
-            gender: true,
-          },
-        });
+          const resumes = await prisma.resume.findMany({
+            where: { animalCode: { in: codes } },
+            include: {
+              breed: true,
+              stage: true,
+              gender: true,
+            },
+          });
 
-        const events = await prisma.event.findMany({
-          where: {
-            AND: [
-              { resume: { animalCode: { in: codes } } },
-              { registeredAt: { gte: startMonth } },
-              { registeredAt: { lte: endMonth } },
-            ],
-          },
-          orderBy: { registeredAt: 'desc' },
-          include: { listItem: true },
-        });
+          const events = await prisma.event.findMany({
+            where: {
+              AND: [
+                { resume: { animalCode: { in: codes } } },
+                { registeredAt: { gte: startMonth } },
+                { registeredAt: { lte: endMonth } },
+              ],
+            },
+            orderBy: { registeredAt: 'desc' },
+            include: { listItem: true, updatedBy: true },
+          });
 
-        return { resumes: resumes || [], events: events || [] };
+          return { resumes: resumes || [], events: events || [] };
+        }
+        return null;
+      } catch (e) {
+        return errorResponse(e);
       }
-      return null;
     },
   },
 };

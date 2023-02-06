@@ -3,18 +3,19 @@ import { Button, Card, Form, Input, message, Row, Space } from 'antd';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
 import { Loading } from '../../components/shared';
-import { t } from '../../constants/labels';
 import { LOGIN } from '../../graphql/auth/client';
+import { useTranslation } from '../../translations';
 
 const Login: React.FC = () => {
   const router = useRouter();
+  const t = useTranslation();
   const [messageApi, contextHolder] = message.useMessage();
 
   const [login, { loading }] = useMutation(LOGIN, {
     onCompleted: ({ login: { response } }) => {
       messageApi.open({
         type: response.result ? 'success' : 'warning',
-        content: t(`messages.${response.message}`),
+        content: t.messages[response.message as keyof typeof t.messages],
       });
       router.push('/');
     },
@@ -45,20 +46,20 @@ const Login: React.FC = () => {
               className='w-400'
             >
               <Form.Item
-                label={t('login.email')}
+                label={t.login.email}
                 name='email'
                 rules={[
-                  { required: true, message: t('rules.required') },
-                  { type: 'email', message: t('rules.invalidEmail') },
+                  { required: true, message: t.rules.required },
+                  { type: 'email', message: t.rules.invalidEmail },
                 ]}
               >
                 <Input />
               </Form.Item>
 
               <Form.Item
-                label={t('login.password')}
+                label={t.login.password}
                 name='password'
-                rules={[{ required: true, message: t('rules.required') }]}
+                rules={[{ required: true, message: t.rules.required }]}
               >
                 <Input.Password />
               </Form.Item>
@@ -70,13 +71,13 @@ const Login: React.FC = () => {
                   onClick={() => router.push('/about')}
                   block
                 >
-                  {t('passwordRecovery.title')}
+                  {t.passwordRecovery.title}
                 </Button>
               </Form.Item>
 
               <Form.Item>
                 <Button type='primary' htmlType='submit' block>
-                  {t('actions.login')}
+                  {t.actions.login}
                 </Button>
               </Form.Item>
             </Form>

@@ -3,7 +3,6 @@ import { Form, Input, message, Select } from 'antd';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { ROLES } from '../../constants/enums';
-import { t } from '../../constants/labels';
 import { ROLES_BY_PARENT_USER } from '../../graphql/role/client';
 import {
   CURRENT_USER,
@@ -13,6 +12,7 @@ import {
   USER_MASTERS,
 } from '../../graphql/user/client';
 import { useApollo } from '../../lib/apolloClient';
+import { useTranslation } from '../../translations';
 import { FormButtons } from '../admin';
 import { Loading, Title } from '../shared';
 
@@ -51,6 +51,7 @@ const User: React.FC<Props> = ({ id }) => {
   const apolloClient = useApollo();
   const [form] = Form.useForm();
   const router = useRouter();
+  const t = useTranslation();
   const [messageApi, contextHolder] = message.useMessage();
 
   const {
@@ -80,7 +81,7 @@ const User: React.FC<Props> = ({ id }) => {
     onCompleted: ({ upsertUser: { result, message } }) => {
       messageApi.open({
         type: result ? 'success' : 'warning',
-        content: t(`messages.${message}`),
+        content: t.messages[message as keyof typeof t.messages],
       });
       if (result) {
         router.push('/admin/user');
@@ -147,13 +148,13 @@ const User: React.FC<Props> = ({ id }) => {
   return (
     <>
       {contextHolder}
-      <Title text={t('user.formTitle')} />
+      <Title text={t.user.formTitle} />
       <Form form={form} {...formItemLayout} onFinish={onFinish}>
         <Form.Item
-          label={t('user.parent')}
+          label={t.user.parent}
           name='parentId'
           initialValue={data?.parent.id}
-          rules={[{ required: true, message: t('rules.required') }]}
+          rules={[{ required: true, message: t.rules.required }]}
         >
           <Select
             disabled={parentOptions.length === 1 || isReadOnly}
@@ -167,37 +168,37 @@ const User: React.FC<Props> = ({ id }) => {
           </Select>
         </Form.Item>
         <Form.Item
-          label={t('user.name')}
+          label={t.user.name}
           name='name'
           initialValue={data?.name}
-          rules={[{ required: true, message: t('rules.required') }]}
+          rules={[{ required: true, message: t.rules.required }]}
         >
           <Input disabled={isReadOnly} />
         </Form.Item>
         <Form.Item
-          label={t('user.email')}
+          label={t.user.email}
           name='email'
           initialValue={data?.email}
           rules={[
-            { required: true, message: t('rules.required') },
-            { type: 'email', message: t('common.invalidEmail') },
+            { required: true, message: t.rules.required },
+            { type: 'email', message: t.rules.invalidEmail },
           ]}
         >
           <Input disabled={isReadOnly} />
         </Form.Item>
         <Form.Item
-          label={t('user.phone')}
+          label={t.user.phone}
           name='phone'
           initialValue={data?.phone}
-          rules={[{ required: true, message: t('rules.required') }]}
+          rules={[{ required: true, message: t.rules.required }]}
         >
           <Input disabled={isReadOnly} />
         </Form.Item>
         <Form.Item
-          label={t('user.role')}
+          label={t.user.role}
           name='roleId'
           initialValue={data?.role.id}
-          rules={[{ required: true, message: t('rules.required') }]}
+          rules={[{ required: true, message: t.rules.required }]}
         >
           <Select disabled>
             {roleOptions.map((option) => (
