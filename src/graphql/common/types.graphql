@@ -26,7 +26,7 @@ enum StateEnum {
 
 type Resume {
   id: String!
-  animalCode: String!
+  code: String!
   animal: Animal
   image: String
   birthday: String!

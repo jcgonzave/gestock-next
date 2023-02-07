@@ -28,9 +28,7 @@ const resolvers = {
         where: { farmId },
       });
       const resumes = await prisma.resume.findMany({
-        where: {
-          animalCode: { in: animals.map((animal) => animal.code) },
-        },
+        where: { code: { in: animals.map((animal) => animal.code) } },
       });
 
       return resumes || [];
@@ -57,7 +55,7 @@ const resolvers = {
           animals.some((animal) => animal.code === code);
 
         for (const resume of resumes) {
-          if (codeValid(resume.animalCode)) {
+          if (codeValid(resume.code)) {
             const {
               modified, //exclude
               isNew, //exclude
@@ -77,7 +75,7 @@ const resolvers = {
               registeredAt: new Date(registeredAt),
               updatedById: currentUser.id,
             });
-            validCodes.push(resume.animalCode);
+            validCodes.push(resume.code);
           }
         }
 
@@ -85,7 +83,7 @@ const resolvers = {
           await prisma.$transaction(
             validResumes.map((resume) =>
               prisma.resume.upsert({
-                where: { animalCode: resume.animalCode },
+                where: { code: resume.code },
                 update: { name: resume.name, caravan: resume.caravan },
                 create: resume,
               })
@@ -94,15 +92,17 @@ const resolvers = {
         }
 
         for (const event of events) {
-          if (codeValid(event.animalCode)) {
+          if (codeValid(event.code)) {
             const resume = await prisma.resume.findUnique({
-              where: { animalCode: event.animalCode },
+              where: { code: event.code },
             });
             if (resume) {
               const {
                 isNew, //exclude
                 eventId, //exclude
-                animalCode, //exclude
+                code, //exclude
+                list, //exclude
+                item: listItemId,
                 numericValue,
                 registeredAt,
                 ...rest
@@ -111,13 +111,14 @@ const resolvers = {
               validEvents.push({
                 ...rest,
                 resumeId: resume.id,
+                listItemId,
                 image: '',
                 numericValue: parseFloat(numericValue) || 0,
                 registeredAt: new Date(registeredAt),
                 updatedById: currentUser.id,
               });
-              if (!validCodes.some((code) => code === event.animalCode)) {
-                validCodes.push(event.animalCode);
+              if (!validCodes.some((validCode) => validCode === event.code)) {
+                validCodes.push(event.code);
               }
             }
           }
@@ -181,8 +182,8 @@ const resolvers = {
         for (const resume of resumes) {
           const invalidColumns = [];
 
-          const animalCode = resume.animalCode;
-          if (!codeValid(animalCode)) {
+          const code = resume.code;
+          if (!codeValid(code)) {
             invalidColumns.push('Código');
           }
 
@@ -229,7 +230,7 @@ const resolvers = {
 
           if (invalidColumns.length === 0) {
             validResumes.push({
-              animalCode,
+              code,
               image: '',
               caravan,
               birthday,
@@ -259,17 +260,9 @@ const resolvers = {
         for (const event of events) {
           const invalidColumns = [];
 
-          let resume;
-          const animalCode = event.animalCode;
-          if (!codeValid(animalCode)) {
+          const code = event.code;
+          if (!codeValid(code)) {
             invalidColumns.push('Código');
-          } else {
-            resume = await prisma.resume.findUnique({
-              where: { animalCode },
-            });
-            if (!resume) {
-              invalidColumns.push('Código');
-            }
           }
 
           const listId = getEventListId(event.list);
@@ -295,9 +288,9 @@ const resolvers = {
 
           const comments = event.comments;
 
-          if (invalidColumns.length === 0 && resume) {
+          if (invalidColumns.length === 0) {
             validEvents.push({
-              resumeId: resume.id,
+              code,
               listItemId,
               numericValue,
               image: '',
@@ -320,15 +313,38 @@ const resolvers = {
           await prisma.$transaction(
             validResumes.map((resume) =>
               prisma.resume.upsert({
-                where: { animalCode: resume.animalCode },
+                where: { code: resume.code },
                 update: { name: resume.name, caravan: resume.caravan },
                 create: resume,
               })
             )
           );
-          await prisma.event.createMany({
-            data: validEvents,
-          });
+
+          const eventsWithResume = [];
+          rowIndex = 2;
+          for (const event of validEvents) {
+            const resume = await prisma.resume.findUnique({
+              where: { code: event.code },
+            });
+            if (resume) {
+              const { code, ...rest } = event;
+              eventsWithResume.push({ ...rest, resumeId: resume.id });
+            } else {
+              invalidData.push({
+                key: `2${rowIndex}`,
+                sheet: 2,
+                row: rowIndex,
+                columns: ['Código'],
+              });
+            }
+            rowIndex += 1;
+          }
+
+          if (eventsWithResume.length === validEvents.length) {
+            await prisma.event.createMany({
+              data: eventsWithResume,
+            });
+          }
         }
 
         return {
@@ -349,6 +365,11 @@ const resolvers = {
     },
   },
   Event: {
+    resume: (parent: { id: string }, _args: unknown, context: ContextType) => {
+      const { id } = parent;
+      const { prisma } = context;
+      return prisma.event.findUnique({ where: { id } }).resume();
+    },
     listItem: (
       parent: { id: string },
       _args: unknown,

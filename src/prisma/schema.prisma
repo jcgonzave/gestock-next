@@ -140,8 +140,8 @@ model ListItem {
 
 model Resume {
   id            String   @id @default(uuid())
-  animal        Animal   @relation(fields: [animalCode], references: [code])
-  animalCode    String   @unique
+  animal        Animal   @relation(fields: [code], references: [code])
+  code          String   @unique
   breed         ListItem @relation(name: "Bread", fields: [breedId], references: [id])
   breedId       String
   color         ListItem @relation(name: "Color", fields: [colorId], references: [id])
@@ -162,7 +162,7 @@ model Resume {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  @@index([animalCode])
+  @@index([code])
   @@index([breedId])
   @@index([colorId])
   @@index([stageId])

@@ -17,7 +17,7 @@ extend type Mutation {
 
 type Resume {
   id: String!
-  animalCode: String!
+  code: String!
   image: String
   breedId: String!
   colorId: String!
@@ -33,7 +33,7 @@ type Resume {
 
 type Event {
   id: String!
-  ResumeId: String!
+  resume: Resume!
   listItem: ListItem!
   numericValue: String
   image: String
@@ -43,7 +43,8 @@ type Event {
 
 input ResumeInputMobile {
   id: String
-  animalCode: String!
+  code: String!
+  image: String
   breedId: String!
   colorId: String!
   stageId: String!
@@ -60,7 +61,7 @@ input ResumeInputMobile {
 }
 
 input ResumeInputExcel {
-  animalCode: String!
+  code: String!
   breed: String
   color: String
   stage: String
@@ -72,8 +73,10 @@ input ResumeInputExcel {
 }
 
 input EventInputMobile {
-  animalCode: String!
-  listItemId: String!
+  code: String!
+  list: String!
+  item: String!
+  image: String
   numericValue: String
   comments: String
   registeredAt: String!
@@ -82,7 +85,7 @@ input EventInputMobile {
 }
 
 input EventInputExcel {
-  animalCode: String!
+  code: String!
   list: String
   item: String
   comments: String

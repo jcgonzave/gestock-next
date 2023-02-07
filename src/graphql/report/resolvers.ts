@@ -23,7 +23,7 @@ const resolvers = {
           const codes = animals.map((animal) => animal.code);
 
           const resumes = await prisma.resume.findMany({
-            where: { animalCode: { in: codes } },
+            where: { code: { in: codes } },
             include: {
               breed: true,
               stage: true,
@@ -34,7 +34,7 @@ const resolvers = {
           const events = await prisma.event.findMany({
             where: {
               AND: [
-                { resume: { animalCode: { in: codes } } },
+                { resume: { code: { in: codes } } },
                 { registeredAt: { gte: startMonth } },
                 { registeredAt: { lte: endMonth } },
               ],

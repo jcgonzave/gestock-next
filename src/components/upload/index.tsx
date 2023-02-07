@@ -66,10 +66,10 @@ const Upload = () => {
   const getResumes = (data: any) => {
     const resumes = [];
     let row = 2;
-    let animalCode = data[`A${row}`] && String(data[`A${row}`].v);
-    while (animalCode) {
+    let code = data[`A${row}`] && String(data[`A${row}`].v);
+    while (code) {
       resumes.push({
-        animalCode,
+        code,
         caravan: data[`B${row}`] && String(data[`B${row}`].v),
         birthday: data[`C${row}`] && String(data[`C${row}`].v),
         initialWeight: data[`D${row}`] && String(data[`D${row}`].v),
@@ -80,7 +80,7 @@ const Upload = () => {
         name: data[`I${row}`] && String(data[`I${row}`].v),
       });
       row = row += 1;
-      animalCode = data[`A${row}`] && String(data[`A${row}`].v);
+      code = data[`A${row}`] && String(data[`A${row}`].v);
     }
     return resumes;
   };
@@ -88,16 +88,16 @@ const Upload = () => {
   const getEvents = (data: any) => {
     const events = [];
     let row = 2;
-    let animalCode = data[`A${row}`] && String(data[`A${row}`].v);
-    while (animalCode) {
+    let code = data[`A${row}`] && String(data[`A${row}`].v);
+    while (code) {
       events.push({
-        animalCode,
+        code,
         list: data[`B${row}`] && String(data[`B${row}`].v),
         item: data[`C${row}`] && String(data[`C${row}`].v),
         comments: data[`D${row}`] && String(data[`D${row}`].v),
       });
       row = row += 1;
-      animalCode = data[`A${row}`] && String(data[`A${row}`].v);
+      code = data[`A${row}`] && String(data[`A${row}`].v);
     }
     return events;
   };
