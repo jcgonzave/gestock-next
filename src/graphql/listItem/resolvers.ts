@@ -109,6 +109,10 @@ const resolvers = {
       }
     },
   },
+  ListItem: {
+    updatedAt: (parent: { updatedAt: number }) =>
+      new Date(parent.updatedAt).toISOString(),
+  },
 };
 
 export default resolvers;

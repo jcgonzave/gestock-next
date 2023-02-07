@@ -363,6 +363,10 @@ const resolvers = {
       const { prisma } = context;
       return prisma.resume.findUnique({ where: { id } }).events();
     },
+    birthday: (parent: { birthday: number }) =>
+      new Date(parent.birthday).toISOString(),
+    registeredAt: (parent: { registeredAt: number }) =>
+      new Date(parent.registeredAt).toISOString(),
   },
   Event: {
     resume: (parent: { id: string }, _args: unknown, context: ContextType) => {
@@ -379,6 +383,8 @@ const resolvers = {
       const { prisma } = context;
       return prisma.event.findUnique({ where: { id } }).listItem();
     },
+    registeredAt: (parent: { registeredAt: number }) =>
+      new Date(parent.registeredAt).toISOString(),
   },
 };
 

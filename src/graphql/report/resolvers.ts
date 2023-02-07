@@ -51,6 +51,10 @@ const resolvers = {
       }
     },
   },
+  ReportEvent: {
+    registeredAt: (parent: { registeredAt: number }) =>
+      new Date(parent.registeredAt).toISOString(),
+  },
 };
 
 export default resolvers;
