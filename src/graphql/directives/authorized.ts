@@ -1,5 +1,5 @@
-import { GraphQLSchema, defaultFieldResolver } from 'graphql';
-import { mapSchema, getDirective, MapperKind } from '@graphql-tools/utils';
+import { getDirective, MapperKind, mapSchema } from '@graphql-tools/utils';
+import { defaultFieldResolver, GraphQLSchema } from 'graphql';
 import { checkAuthentication, checkAuthorization } from '../utils/auth';
 
 const directiveName = 'authorized';
@@ -25,6 +25,7 @@ export default function authorizedDirective() {
             return fieldConfig;
           }
         }
+        return null;
       },
     });
 }

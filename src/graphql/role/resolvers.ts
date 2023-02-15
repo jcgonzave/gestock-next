@@ -113,7 +113,7 @@ const resolvers = {
     users: (parent: { id: string }, _args: unknown, context: ContextType) => {
       const { id } = parent;
       const { prisma } = context;
-      return prisma.role.findUnique({ where: { id: parent.id } }).users();
+      return prisma.role.findUnique({ where: { id } }).users();
     },
     modules: async (
       parent: { id: string },

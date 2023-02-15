@@ -1,10 +1,10 @@
+import { Col, Layout as LayoutAntd, Row } from 'antd';
 import Navbar from './Navbar';
-import { Layout as LayoutAntd, Row, Col } from 'antd';
 
 const { Header, Footer, Content } = LayoutAntd;
 
 const Layout: React.FC<{
-  layoutType: 'ADMIN' | 'USER' | undefined;
+  layoutType: 'ADMIN' | 'USER';
   children: any;
 }> = ({ layoutType, children }) => {
   return (
