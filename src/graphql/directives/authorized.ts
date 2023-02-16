@@ -25,7 +25,7 @@ export default function authorizedDirective() {
             return fieldConfig;
           }
         }
-        return null;
+        return;
       },
     });
 }

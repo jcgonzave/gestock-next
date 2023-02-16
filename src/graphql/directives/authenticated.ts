@@ -21,7 +21,7 @@ export default function authenticatedDirective() {
           };
           return fieldConfig;
         }
-        return null;
+        return;
       },
     });
 }
