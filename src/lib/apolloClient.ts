@@ -35,9 +35,6 @@ function createApolloClient() {
   const httpLink = createUploadLink({
     uri: '/api/graphql',
     credentials: 'same-origin',
-    headers: {
-      'Apollo-Require-Preflight': 'true',
-    },
   });
 
   return new ApolloClient({
