@@ -33,7 +33,7 @@ let apolloClient: ApolloClient<NormalizedCacheObject> | undefined;
 
 function createApolloClient() {
   const httpLink = createUploadLink({
-    uri: `${process.env.SERVER_URL ?? 'http://localhost:3000'}/api/graphql`,
+    uri: '/api/graphql',
     credentials: 'same-origin',
     headers: {
       'Apollo-Require-Preflight': 'true',
