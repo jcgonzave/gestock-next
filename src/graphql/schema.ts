@@ -13,7 +13,7 @@ import user from './user/resolvers';
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
 import { loadSchemaSync } from '@graphql-tools/load';
 
-const typeDefs = loadSchemaSync('src/graphql/**/*.graphql', {
+const typeDefs = loadSchemaSync('src/**/*.graphql', {
   loaders: [new GraphQLFileLoader()],
 });
 
