@@ -69,7 +69,6 @@ const resolvers = {
 
             validResumes.push({
               ...data,
-              image: '',
               birthday: new Date(birthday),
               initialWeight: parseFloat(initialWeight),
               registeredAt: new Date(registeredAt),
@@ -112,7 +111,6 @@ const resolvers = {
                 ...rest,
                 resumeId: resume.id,
                 listItemId,
-                image: '',
                 numericValue: parseFloat(numericValue) || 0,
                 registeredAt: new Date(registeredAt),
                 updatedById: currentUser.id,
