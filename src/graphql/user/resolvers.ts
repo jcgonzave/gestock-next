@@ -1,11 +1,15 @@
+import {
+  ErrorMessagesEnum,
+  RoleEnum,
+  SuccessMessagesEnum,
+} from '../../constants/enums';
 import { getTokenFromData } from '../../utils/tokenHandler';
-import { ErrorMessagesEnum, RoleEnum, SuccessMessagesEnum } from '../enums';
 import { ContextType, RoleType, UserInputType } from '../types';
 import { errorResponse, successResponse } from '../utils/responses';
 
 const { SUCCESS_EDITED, SUCCESS_SAVED, SUCCESS_DELETED } = SuccessMessagesEnum;
 const {
-  ERROR_USER_NOT_FOUND,
+  ERROR_INVALID_USER_OR_PASSWORD,
   ERROR_DELETE_HIMSELF,
   ERROR_FOREIGN_KEY,
   ERROR_DELETE_ADMIN,
@@ -18,7 +22,7 @@ const resolvers = {
       try {
         const { prisma, currentUser } = context;
         if (!currentUser) {
-          return errorResponse(ERROR_USER_NOT_FOUND);
+          return errorResponse(ERROR_INVALID_USER_OR_PASSWORD);
         }
         return prisma.user.findUnique({ where: { id: currentUser.id } });
       } catch (e) {

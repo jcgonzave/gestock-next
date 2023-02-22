@@ -3,14 +3,14 @@ import { DatePicker, Select, Table } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { useEffect, useState } from 'react';
 import { Loading, Title } from '../../components/shared';
-import { LISTS } from '../../constants/enums';
+import { ListEnum } from '../../constants/enums';
 import { FARMS } from '../../graphql/farm/client';
 import { STATS_REPORT } from '../../graphql/report/client';
 import { useTranslation } from '../../translations';
 
 const { Option } = Select;
 const { MonthPicker } = DatePicker;
-const { LOT, STATE, LOSS, VACCINE } = LISTS;
+const { LOT, STATE, LOSS, VACCINE } = ListEnum;
 
 type DataSource = { item: string; value: string };
 

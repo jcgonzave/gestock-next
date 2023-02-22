@@ -1,4 +1,4 @@
-import { ListEnum } from '../enums';
+import { ListEnum } from '../../constants/enums';
 import { ContextType } from '../types';
 import { errorResponse } from '../utils/responses';
 

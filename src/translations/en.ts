@@ -176,7 +176,6 @@ const en = {
     ERROR_INVALID_TOKEN: 'Invalid token',
     ERROR_NO_TOKEN_SENT: 'Missing token',
     ERROR_NO_MODULE_ACCESS: "You don't have access to this module",
-    ERROR_USER_NOT_FOUND: 'User not found',
     ERROR_INVALID_USER_OR_PASSWORD: 'Invalid username or password',
     ERROR_PASSWORD_MUST_MATCH: 'Passwords must match',
     ERROR_DUPLICATE_KEY: 'Data entered already exists',

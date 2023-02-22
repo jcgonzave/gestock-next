@@ -1,12 +1,11 @@
 import bcrypt from 'bcryptjs';
+import { ErrorMessagesEnum, SuccessMessagesEnum } from '../../constants/enums';
 import { getDataFromToken, getTokenFromData } from '../../utils/tokenHandler';
-import { ErrorMessagesEnum, SuccessMessagesEnum } from '../enums';
 import { ContextType, UserType } from '../types';
 import { errorResponse, successResponse } from '../utils/responses';
 
 const { SUCCESS_SESSION_STARTED, SUCCESS_MAIL_SENT } = SuccessMessagesEnum;
 const {
-  ERROR_USER_NOT_FOUND,
   ERROR_INVALID_USER_OR_PASSWORD,
   ERROR_PASSWORD_MUST_MATCH,
   ERROR_INVALID_TOKEN,
@@ -14,7 +13,7 @@ const {
 
 const validateUser = async (user: UserType, password: string) => {
   if (!user || !user.password) {
-    return errorResponse(ERROR_USER_NOT_FOUND);
+    return errorResponse(ERROR_INVALID_USER_OR_PASSWORD);
   }
   const passwordMatch = await bcrypt.compare(password, user.password);
   if (!passwordMatch) {
@@ -160,7 +159,7 @@ const resolvers = {
           where: { email: data.email },
         });
         if (!user) {
-          return errorResponse(ERROR_USER_NOT_FOUND);
+          return errorResponse(ERROR_INVALID_USER_OR_PASSWORD);
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);

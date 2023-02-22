@@ -1,4 +1,4 @@
-import { RoleEnum, SuccessMessagesEnum } from '../enums';
+import { RoleEnum, SuccessMessagesEnum } from '../../constants/enums';
 import { ContextType, RoleInputType } from '../types';
 import { errorResponse, successResponse } from '../utils/responses';
 

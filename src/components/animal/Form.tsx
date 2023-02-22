@@ -2,7 +2,7 @@ import { useMutation, useQuery } from '@apollo/client';
 import { Form, Input, message, Select } from 'antd';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
-import { ROLES } from '../../constants/enums';
+import { RoleEnum } from '../../constants/enums';
 import {
   ANIMAL,
   ANIMALS,
@@ -14,7 +14,7 @@ import { useTranslation } from '../../translations';
 import { FormButtons } from '../admin';
 import { Loading, Title } from '../shared';
 
-const { ADMIN, COMPANY } = ROLES;
+const { ADMIN, COMPANY } = RoleEnum;
 
 const formItemLayout = {
   labelCol: { span: 8 },

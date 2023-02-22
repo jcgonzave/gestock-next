@@ -1,4 +1,4 @@
-import { RoleEnum } from '../enums';
+import { RoleEnum } from '../../constants/enums';
 import { ContextType } from '../types';
 
 const { ADMIN, COMPANY, FARMER, COWBOY } = RoleEnum;

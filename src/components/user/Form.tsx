@@ -2,7 +2,7 @@ import { useMutation, useQuery } from '@apollo/client';
 import { Form, Input, message, Select } from 'antd';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
-import { ROLES } from '../../constants/enums';
+import { RoleEnum } from '../../constants/enums';
 import { ROLES_BY_PARENT_USER } from '../../graphql/role/client';
 import {
   CURRENT_USER,
@@ -105,7 +105,7 @@ const User: React.FC<Props> = ({ id }) => {
       setRoleOptions(roles);
       setIsReadOnly(
         user.parent.id !== currentUser.id &&
-          currentUser.role.key !== ROLES.ADMIN
+          currentUser.role.key !== RoleEnum.ADMIN
       );
     } else {
       if (parentUsers.length === 1) {

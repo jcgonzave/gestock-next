@@ -1,5 +1,5 @@
 import { GraphQLError } from 'graphql';
-import { ErrorMessagesEnum } from '../enums';
+import { ErrorMessagesEnum } from '../../constants/enums';
 import { ContextType } from '../types';
 
 const { ERROR_NO_TOKEN_SENT, ERROR_NO_MODULE_ACCESS } = ErrorMessagesEnum;

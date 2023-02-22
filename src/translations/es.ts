@@ -177,7 +177,6 @@ const es = {
     ERROR_INVALID_TOKEN: 'Token de autorización no válido',
     ERROR_NO_TOKEN_SENT: 'Token de autorización no enviado',
     ERROR_NO_MODULE_ACCESS: 'No está autorizado para acceder a este módulo',
-    ERROR_USER_NOT_FOUND: 'Usuario no encontrado',
     ERROR_INVALID_USER_OR_PASSWORD: 'Usuario o contraseña no válida',
     ERROR_PASSWORD_MUST_MATCH: 'Las contraseñas deben coincidir',
     ERROR_DUPLICATE_KEY:

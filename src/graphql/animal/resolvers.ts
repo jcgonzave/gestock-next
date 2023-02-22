@@ -1,4 +1,4 @@
-import { ErrorMessagesEnum, SuccessMessagesEnum } from '../enums';
+import { ErrorMessagesEnum, SuccessMessagesEnum } from '../../constants/enums';
 import { AnimalInputType, ContextType } from '../types';
 import { getFarmsByUser } from '../utils/farm';
 import { errorResponse, successResponse } from '../utils/responses';

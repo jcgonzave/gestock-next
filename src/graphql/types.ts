@@ -1,7 +1,7 @@
 import { Prisma, PrismaClient, Role, User } from '@prisma/client';
 import { ServerResponse } from 'http';
 import type { NextApiResponse } from 'next';
-import { ListEnum, RoleEnum, StateEnum } from './enums';
+import { ListEnum, RoleEnum, StateEnum } from '../constants/enums';
 
 export type PrismaType = PrismaClient<
   Prisma.PrismaClientOptions,
