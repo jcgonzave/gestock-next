@@ -6,7 +6,7 @@ export async function middleware(req: NextRequest) {
   const pathName = req.nextUrl.pathname;
   const appToken = req.cookies.get('appToken')?.value;
 
-  if (pathName === '/_next/image') {
+  if (pathName === '/_next/image' || pathName === '/logo.png') {
     return NextResponse.next();
   }
 

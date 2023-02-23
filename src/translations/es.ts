@@ -71,7 +71,7 @@ const es = {
   },
   general: {
     unauthorized: 'Se requieren permisos para acceder a este sitio',
-    copyRight: 'Copyright © 2022 Gestock - Todos los derechos reservados',
+    copyRight: 'Copyright © 2023 MTRAZA - Todos los derechos reservados',
   },
   login: {
     title: 'Iniciar sesión',

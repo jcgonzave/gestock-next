@@ -35,8 +35,8 @@ const Login: React.FC = () => {
             <Image
               src='/logo.png'
               width={200}
-              height={200}
-              alt='Logo Gestock'
+              height={124}
+              alt='Logo MTRAZA'
               priority
             />
             <Form
@@ -62,17 +62,6 @@ const Login: React.FC = () => {
                 rules={[{ required: true, message: t.rules.required }]}
               >
                 <Input.Password />
-              </Form.Item>
-
-              <Form.Item>
-                <Button
-                  type='link'
-                  htmlType='button'
-                  onClick={() => router.push('/about')}
-                  block
-                >
-                  {t.passwordRecovery.title}
-                </Button>
               </Form.Item>
 
               <Form.Item>

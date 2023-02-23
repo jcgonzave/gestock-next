@@ -110,8 +110,7 @@ const Navbar: React.FC<Props> = ({ layoutType }) => {
 
   return (
     <div className='flex-row'>
-      <Image src='/logo.png' width={50} height={50} alt='Logo Gestock' />
-      <h2>Gestock</h2>
+      <Image src='/logo.png' width={102} height={64} alt='Logo MTRAZA' />
       <Menu
         onClick={onClick}
         mode='horizontal'

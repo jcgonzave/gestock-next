@@ -71,7 +71,7 @@ const en = {
   },
   general: {
     unauthorized: 'You are unauthorized to access this site',
-    copyRight: 'Copyright © 2022 Gestock - All rights reserved',
+    copyRight: 'Copyright © 2023 MTRAZA - All rights reserved',
   },
   login: {
     title: 'Login',

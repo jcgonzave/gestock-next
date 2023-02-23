@@ -20,8 +20,8 @@ export default function App({ Component, pageProps }: CustomAppProps) {
     <>
       <ApolloProvider client={apolloClient}>
         <Head>
-          <title>Gestock</title>
-          <meta name='description' content='Gestock' />
+          <title>MTRAZA</title>
+          <meta name='description' content='MTRAZA' />
           <link rel='icon' href='/favicon.ico' />
           <meta charSet='utf-8' />
           <meta

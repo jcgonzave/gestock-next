@@ -1,4 +1,5 @@
 import { Col, Layout as LayoutAntd, Row } from 'antd';
+import { useTranslation } from '../../translations';
 import Navbar from './Navbar';
 
 const { Header, Footer, Content } = LayoutAntd;
@@ -7,6 +8,7 @@ const Layout: React.FC<{
   layoutType: 'ADMIN' | 'USER';
   children: any;
 }> = ({ layoutType, children }) => {
+  const t = useTranslation();
   return (
     <LayoutAntd>
       <Header>
@@ -19,7 +21,7 @@ const Layout: React.FC<{
           </Col>
         </Row>
       </Content>
-      <Footer>Copyright © 2022 Gestock - Todos los derechos reservados.</Footer>
+      <Footer>{t.general.copyRight}</Footer>
     </LayoutAntd>
   );
 };
