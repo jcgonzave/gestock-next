@@ -9,10 +9,10 @@ module.exports = withAntdLess({
 
   reactStrictMode: true,
   swcMinify: true,
-  // i18n: {
-  //   locales: ['es', 'en'],
-  //   defaultLocale: 'es',
-  // },
+  i18n: {
+    locales: ['es', 'en'],
+    defaultLocale: 'es',
+  },
 
   webpack(config) {
     return config;
